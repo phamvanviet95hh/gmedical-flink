@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.my_flink_job</groupId>
+  <artifactId>flink_job</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>flink_job</name>
+  <!-- FIXME change it to the project's website -->
+  <url>http://www.example.com</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>11</maven.compiler.release>
+      <flink.version>1.17.1</flink.version>
+      <iceberg.version>1.4.2</iceberg.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.11.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+<dependencies>
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-java</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+   </dependency>
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-runtime</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+    </dependency>
+   <dependency>
+       <groupId>org.apache.flink</groupId>
+       <artifactId>flink-streaming-java</artifactId>
+       <version>${flink.version}</version>
+       <scope>provided</scope>
+   </dependency>
+   <dependency>
+       <groupId>software.amazon.awssdk</groupId>
+       <artifactId>bundle</artifactId>
+       <version>2.20.18</version>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.iceberg</groupId>
+       <artifactId>iceberg-flink</artifactId>
+       <version>${iceberg.version}</version>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.flink</groupId>
+       <artifactId>flink-table-api-java-bridge</artifactId>
+       <version>${flink.version}</version>
+       <scope>provided</scope>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.flink</groupId>
+       <artifactId>flink-table-api-java</artifactId>
+       <version>${flink.version}</version>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.flink</groupId>
+       <artifactId>flink-table-common</artifactId>
+       <version>${flink.version}</version>
+       <scope>provided</scope>
+   </dependency>
+<!--   <dependency>-->
+<!--    <groupId>org.apache.iceberg</groupId>-->
+<!--    <artifactId>iceberg-flink-runtime-1.17</artifactId>-->
+<!--       <version>${iceberg.version}</version>-->
+<!--   </dependency>-->
+   <dependency>
+       <groupId>software.amazon.awssdk</groupId>
+       <artifactId>url-connection-client</artifactId>
+       <version>2.20.18</version>
+       <scope>test</scope>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.iceberg</groupId>
+       <artifactId>iceberg-core</artifactId>
+       <version>${iceberg.version}</version>
+   </dependency>
+   <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-common</artifactId>
+       <version>2.8.5</version>
+   </dependency>
+   <dependency>
+     <groupId>junit</groupId>
+     <artifactId>junit</artifactId>
+     <version>4.11</version>
+     <scope>test</scope>
+   </dependency>
+   <dependency>
+     <groupId>org.apache.flink</groupId>
+     <artifactId>flink-connector-files</artifactId>
+       <version>${flink.version}</version>
+       <scope>provided</scope>
+   </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka -->
+    <dependency>
+        <groupId>org.springframework.kafka</groupId>
+        <artifactId>spring-kafka</artifactId>
+        <version>3.3.6</version>
+    </dependency>
+    <dependency>
+        <groupId>io.minio</groupId>
+        <artifactId>minio</artifactId>
+        <version>8.5.5</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.json/json -->
+    <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20250517</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.parquet/parquet-avro -->
+    <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-avro</artifactId>
+        <version>1.15.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-parquet -->
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-parquet</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+         <groupId>org.apache.flink</groupId>
+        <artifactId>flink-s3-fs-hadoop</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-aws</artifactId>
+      <version>3.3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-bundle</artifactId>
+      <version>1.11.1026</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-kafka -->
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-connector-kafka</artifactId>
+        <version>3.0.1-1.17</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-base -->
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-connector-base</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+    </dependency>
+
+      <!-- https://mvnrepository.com/artifact/io.minio/minio -->
+
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>2.8.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.36</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.36</version>
+      </dependency>
+    <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+    <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>4.0.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>2.19.0</version>
+    </dependency>
+
+</dependencies>
+</project>
