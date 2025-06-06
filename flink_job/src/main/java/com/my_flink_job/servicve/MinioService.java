@@ -7,8 +7,6 @@ import java.io.InputStream;
 
 public class MinioService {
 
-
-
     private MinioClient minioClient() {
         return MinioClient.builder()
                 .endpoint("http://10.6.8.29:9100")
