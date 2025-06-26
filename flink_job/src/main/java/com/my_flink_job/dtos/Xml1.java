@@ -13,10 +13,10 @@ public class Xml1 {
     }
 
     @JacksonXmlProperty(localName = "MA_LK")
-    private Integer maLk;
+    private String maLk;
 
     @JacksonXmlProperty(localName = "STT")
-    private Integer stt;
+    private String stt;
 
     @JacksonXmlProperty(localName = "MA_BN")
     private String maBn;
@@ -31,7 +31,7 @@ public class Xml1 {
     private String ngaySinh;
 
     @JacksonXmlProperty(localName = "GIOI_TINH")
-    private Integer gioiTinh;
+    private String gioiTinh;
 
     @JacksonXmlProperty(localName = "NHOM_MAU")
     private String nhomMau;
@@ -133,7 +133,7 @@ public class Xml1 {
     private String ppDieuTri;
 
     @JacksonXmlProperty(localName = "KET_QUA_DTRI")
-    private Integer ketQuaDt;
+    private String ketQuaDt;
 
     @JacksonXmlProperty(localName = "MA_LOAI_RV")
     private String maLoaiRv;
@@ -172,10 +172,10 @@ public class Xml1 {
     private String tBhttGdv;
 
     @JacksonXmlProperty(localName = "NAM_QT")
-    private Integer namQt;
+    private String namQt;
 
     @JacksonXmlProperty(localName = "THANG_QT")
-    private Integer thangQt;
+    private String thangQt;
 
     @JacksonXmlProperty(localName = "MA_LOAI_KCB")
     private String maLoaiKcb;

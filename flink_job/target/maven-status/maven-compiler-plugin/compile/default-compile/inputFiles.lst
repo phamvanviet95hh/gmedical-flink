@@ -50,9 +50,12 @@ E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\Xml13Extractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\ChiTietThuoc.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\DanhSachChiTietDienBienBenh.java
+E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\PatientExtractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\Xml8Extractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\App.java
+E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\iceberg\Patient.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\ChiTietDieuTriBenhLao.java
+E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\iceberg\Admision_Medical_Record.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\Xml4Extractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml9.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml3.java

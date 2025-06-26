@@ -2,24 +2,19 @@ package com.my_flink_job.dtos.table;
 
 public class TableDtos {
 
-    public static String admissionCheckin = "CREATE TABLE IF NOT EXISTS db_3179.admision_checkin (" + "  maLk INT," + "  stt INT," + "  maBn STRING," + "  hoTen STRING," +
-            "  soCccd STRING," + "  ngaySinh STRING," + "  gioiTinh INT," + "  nhomMau STRING," +
-            "  maQuocTich STRING," + "  maDanToc STRING," + "  maNgheNghiep STRING," + "  diaChi STRING," + "  maTinhCuTru STRING," + "  maHuyenCuTru STRING," +
-            "  maXaCuTru STRING," + "  dienThoai STRING," + "  maTheBhyt STRING," + "  maDkbd STRING," + "  gtTheTu STRING," + "  gtTheDen STRING," +
-            "  ngayMienCct STRING," + "  lyDoVv STRING," + "  lyDoVnt STRING," + "  maLyDoVnt STRING," + "  chanDoanVao STRING," + "  chanDoanRv STRING," +
-            "  maBenhChinh STRING," + "  maBenhKt STRING," + "  maBenhYhct STRING," + "  maPtttQt STRING," + "  maDoiTuongKcb STRING," + "  maNoiDi STRING," + "  maNoiDen STRING," +
-            "  maTaiNan STRING," + "  ngayVao STRING," + "  ngayVaoNoiTru STRING," + "  ngayRa STRING," + "  giayChuyenTuyen STRING," + "  soNgayDt STRING," +
-            "  ppDieuTri STRING," + "  ketQuaDt INT," + "  maLoaiRv STRING," + "  ghiChu STRING," + "  ngayTtoan STRING," + "  tThuoc STRING," + "  tVtyt STRING," +
-            "  tTongChiBv STRING," + "  tTongChiBh STRING," + "  tBntt STRING," + "  tBncct STRING," + "  tBhtt STRING," + "  tNguonKhac STRING," +
-            "  tBhttGdv STRING," + "  namQt INT," + "  thangQt INT," + "  maLoaiKcb STRING," + "  maKhoa STRING," + "  maCskcb STRING," + "  maKhuVuc STRING," +
-            "  canNang STRING," + "  canNangCon STRING," + "  namNamLienTuc STRING," + "  ngayTaiKham STRING," + "  maHsba STRING," + "  maTtdv STRING," + "  duPhong STRING, " + " PRIMARY KEY (maLk) NOT ENFORCED) " +
+    public static String admissionCheckin = "CREATE TABLE IF NOT EXISTS db_3179.admision_checkin ( id String, maBn String, maLoaiRv String," +
+            " ketQuaDtri String , maLk String, lyDoVv String , lyDoVnt String , canNang String, gtTheTu String," +
+            " gtTheDen String , duPhong String, maNoiDen String, maNoiDi String, ngayVao String, " +
+            " ngayRa String, maTheBhyt String, maLyDoVnt String, maHsba String, ngayVaoNoiTru String, " +
+            " stt String, maCskb String, maTaiNan String, namNamLienTuc String, maDkbd String , ngayMienCct String, " +
+            " maDoituongKcb String, createdAt String, updatedAt String, createdBy String, updatedBy String, PRIMARY KEY (maLk) NOT ENFORCED) " +
             "  WITH (\n" +
             "  'write.metadata.delete-after-commit.enabled' = 'true',\n" +
             "  'write.metadata.previous-versions-max' = '1',\n" +
             "  'write.metadata.auto-merge.enabled' = 'false',\n" +
             "  'write.parquet.compression-codec' = 'uncompressed',\n" +
             "  'format-version' = '2',\n" +
-            "  'write.format.default' = 'parquet'\n" +
+            "  'write.format.default' = 'parquet', 'connector' = 'print'\n" +
             ")";
     public static String admisionMed ="CREATE TABLE IF NOT EXISTS db_3179.admision_med(" +
             "maLk STRING, stt STRING, maThuoc STRING, maPpCheBien STRING" +
@@ -79,9 +74,13 @@ public class TableDtos {
             " 'format-version' = '2'," +
             " 'write.format.default' = 'parquet')";
     public static String admisionMedicalRecord ="CREATE TABLE IF NOT EXISTS db_3179.admision_medical_record(" +
-            " maLk String, maLoaiKcb String, hoTenCha String, hoTenMe String, nguoiGiamHo String, donVi String, ngayVao String, ngayRa String, chanDoanVao String" +
-            ", chanDoanRv String, qtBenhLy String, tomTatKq String, ppDieuTri String, ngaySinhCon String, ngayConChet String, soConChet String, ketQuaDieuTri String, ghiChu String" +
-            ", maTtdv String, ngayCt String, maTheTam String, duPhong String, PRIMARY KEY (maLk) NOT ENFORCED)" +
+            " stt String, chanDoanRv String, chanDoanVao String, donVi String, duPhong String, ghiChu String, ketQuaDt String, " +
+            " maBenhChinh String, maBenhKt String" +
+            ", maBenhYhct String, maLoaiKcb String, maLoaiRv String, maPtttQt String, maTtdv String, namQt String, " +
+            " ngayTaiKham String, ngayTtoan String, nguoiGiamHo String" +
+            ", ppDieuTri String, qtBenhLy String, soNgayDt String, tBhtt String, tBhttGdv String, tBncct String," +
+            " tBntt String, tNguonKhac String, tThuoc String, tTongChiBh String, tTongChiBv String, tVtyt String, " +
+            " tomTatKq String, thangQt String, PRIMARY KEY (stt) NOT ENFORCED)" +
             " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
             " 'write.metadata.previous-versions-max' = '1'," +
             " 'write.metadata.auto-merge.enabled' = 'false'," +
@@ -159,6 +158,16 @@ public class TableDtos {
             " maLk String, stt String, maBn String, hoTen String, soCccd String, phanLoaiLaoViTri String, phanLoaiLaoTs String, phanLoaiLaoHiv String" +
             ", phanLoaiLaoVk String, phanLoaiLaoKt String, loaiDtriLao String, ngayBdDtriLao String, phacDoDtriLao String, ngayKtDtriLao String, ketQuaDtriLao String, maCskcb String" +
             ", ngayKdHiv String, bddtArv String, ngayBatDauDtCtx String, duPhong String, PRIMARY KEY (maLk) NOT ENFORCED)" +
+            " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
+            " 'write.metadata.previous-versions-max' = '1'," +
+            " 'write.metadata.auto-merge.enabled' = 'false'," +
+            " 'write.parquet.compression-codec' = 'uncompressed'," +
+            " 'format-version' = '2'," +
+            " 'write.format.default' = 'parquet')";
+
+    public static String patient ="CREATE TABLE IF NOT EXISTS db_3179.patient(" +
+            " diaChi String, dienThoai String, gioiTinh String, hoTen String, hoTenCha String, hoTenMe String, maDanToc String, maNgheNghiep String" +
+            ", maQuocTich String, maHuyenCuTru String, maTinhCuTru String, maXaCuTru String, ngaySinh String, nhomMau String, soCccd String, stt String, PRIMARY KEY (stt) NOT ENFORCED)" +
             " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
             " 'write.metadata.previous-versions-max' = '1'," +
             " 'write.metadata.auto-merge.enabled' = 'false'," +

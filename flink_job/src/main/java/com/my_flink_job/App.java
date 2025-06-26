@@ -3,6 +3,9 @@ package com.my_flink_job;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.my_flink_job.dtos.*;
+import com.my_flink_job.dtos.iceberg.Admision_Medical_Record;
+import com.my_flink_job.dtos.iceberg.AdmissionCheckin;
+import com.my_flink_job.dtos.iceberg.Patient;
 import com.my_flink_job.dtos.table.TableDtos;
 import com.my_flink_job.servicve.*;
 import org.apache.flink.table.api.*;
@@ -26,8 +29,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.util.Collector;
@@ -106,6 +111,7 @@ public class App {
     tableEnv.executeSql(TableDtos.admisionReferral);
     tableEnv.executeSql(TableDtos.admisionAppointment);
     tableEnv.executeSql(TableDtos.admissionTuberculosis);
+    tableEnv.executeSql(TableDtos.patient);
 
     logger1.info("End create CATALOG: ----------------------------------------------------------------------- ");
     logger1.info("Start connect: -----------------------------------------------------------------------> ");
@@ -124,46 +130,58 @@ public class App {
     //Nhận message từ Kafka job
     DataStream<String> text = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
     logger1.info("Connect Kafka Success: -----------------------------------------------------------------------> {}",text);
-
+    String uuidCheckIn = UUID.randomUUID().toString();
+    logger1.info("uuidCheckIn: -----------------------------------------------------------------------> {}",uuidCheckIn);
     // map Kafka message (đường dẫn) -> FullXmlData object (chứa nhiều list con)
     DataStream<String> rawXmlString = text.flatMap(new MinioXmlFetcher());
     DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
 
     //Comvert Data theo XML
-    DataStream<Xml1> xml1Stream = fullXmlDataStream.flatMap(new Xml1Extractor());
-    DataStream<ChiTietThuoc> xml2Stream = fullXmlDataStream.flatMap(new Xml2Extractor());
-    DataStream<ChiTietDvkt> xml3Stream = fullXmlDataStream.flatMap(new Xml3Extractor());
-    DataStream<ChiTietCls> xml4Stream = fullXmlDataStream.flatMap(new Xml4Extractor());
-    DataStream<ChiTietDienBienBenh> xml5Stream = fullXmlDataStream.flatMap(new Xml5Extractor());
-    DataStream<Xml7> xml7Stream = fullXmlDataStream.flatMap(new Xml7Extractor());
-    DataStream<Xml8> xml8Stream = fullXmlDataStream.flatMap(new Xml8Extractor());
-    DataStream<DulieuGiayChungSinh> xml9Stream = fullXmlDataStream.flatMap(new Xml9Extractor());
-    DataStream<Xml10> xml10Stream = fullXmlDataStream.flatMap(new Xml10Extractor());
-    DataStream<Xml11> xml11Stream = fullXmlDataStream.flatMap(new Xml11Extractor());
-    DataStream<Xml12> xml12Stream = fullXmlDataStream.flatMap(new Xml12Extractor());
-    DataStream<Xml13> xml13Stream = fullXmlDataStream.flatMap(new Xml13Extractor());
-    DataStream<Xml14> xml14Stream = fullXmlDataStream.flatMap(new Xml14Extractor());
-    DataStream<ChiTietDieuTriBenhLao> xml15Stream = fullXmlDataStream.flatMap(new Xml15Extractor());
+    DataStream<AdmissionCheckin> admissionCheckinDataStream = fullXmlDataStream.flatMap(new Xml1Extractor(uuidCheckIn));
+    logger1.info("admissionCheckinDataStream : {}", admissionCheckinDataStream.keyBy("id"));
+    DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = fullXmlDataStream.flatMap(new Xml8Extractor());
+    DataStream<Patient> patientDataStream = fullXmlDataStream.flatMap(new PatientExtractor());
 
+    DataStream<ChiTietThuoc> admisionMedDataStream = fullXmlDataStream.flatMap(new Xml2Extractor());
+
+    DataStream<ChiTietDvkt> chiTietDvktStream = fullXmlDataStream.flatMap(new Xml3Extractor());
+    DataStream<ChiTietCls> chiTietClsDataStream = fullXmlDataStream.flatMap(new Xml4Extractor());
+    DataStream<ChiTietDienBienBenh> admisionClinicalDataStream = fullXmlDataStream.flatMap(new Xml5Extractor());
+    DataStream<Xml7> admisionDischargeDataStream = fullXmlDataStream.flatMap(new Xml7Extractor());
+
+    DataStream<DulieuGiayChungSinh> admisionBirthCertificateDataStream = fullXmlDataStream.flatMap(new Xml9Extractor());
+    DataStream<Xml10> admissionMaternityLeaveDataStream = fullXmlDataStream.flatMap(new Xml10Extractor());
+    DataStream<Xml11> admisionBenefitLeaveDataStream = fullXmlDataStream.flatMap(new Xml11Extractor());
+    DataStream<Xml12> admissionMedicalExamDataStream = fullXmlDataStream.flatMap(new Xml12Extractor());
+    DataStream<Xml13> admisionReferralDataStream = fullXmlDataStream.flatMap(new Xml13Extractor());
+    DataStream<Xml14> admisionAppointmentDataStream = fullXmlDataStream.flatMap(new Xml14Extractor());
+    DataStream<ChiTietDieuTriBenhLao> chiTietDieuTriBenhLaoDataStream = fullXmlDataStream.flatMap(new Xml15Extractor());
 
     //Khởi tạo dữ liệu
-    Table xml1Table = tableEnv.fromDataStream(
-            xml1Stream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("ngaySinh")
-            , $("gioiTinh"), $("nhomMau"), $("maQuocTich"), $("maDanToc"), $("maNgheNghiep")
-            , $("diaChi"), $("maTinhCuTru"), $("maHuyenCuTru"), $("maXaCuTru"), $("dienThoai"), $("maTheBhyt"), $("maDkbd")
-            , $("gtTheTu"), $("gtTheDen"), $("ngayMienCct"), $("lyDoVv"), $("lyDoVnt"), $("maLyDoVnt"), $("chanDoanVao")
-            , $("chanDoanRv"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maPtttQt"), $("maDoiTuongKcb"), $("maNoiDi")
-            , $("maNoiDen"), $("maTaiNan"), $("ngayVao"), $("ngayVaoNoiTru"), $("ngayRa"), $("giayChuyenTuyen")
-            , $("soNgayDt"), $("ppDieuTri"), $("ketQuaDt"), $("maLoaiRv"), $("ghiChu"), $("ngayTtoan")
-            , $("tThuoc"), $("tVtyt"), $("tTongChiBv"), $("tTongChiBh"), $("tBntt"), $("tBncct")
-            , $("tBhtt"), $("tNguonKhac"), $("tBhttGdv"), $("namQt"), $("thangQt"), $("maLoaiKcb")
-            , $("maKhoa"), $("maCskcb"), $("maKhuVuc")
-            , $("canNang"), $("canNangCon"), $("namNamLienTuc"), $("ngayTaiKham"), $("maHsba"), $("maTtdv")
-            , $("duPhong")// đổi tên trường cho phù hợp với bảng Iceberg
+    Table admissionCheckinTable = tableEnv.fromDataStream(
+            admissionCheckinDataStream,$("id"), $("maLk"), $("maBn"), $("maLoaiRv"), $("ketQuaDtri"), $("lyDoVv"), $("lyDoVnt")
+            , $("canNang"), $("gtTheTu"), $("gtTheDen"), $("duPhong"), $("maNoiDen"), $("maNoiDi")
+            , $("ngayVao"), $("ngayRa"), $("maTheBhyt"), $("maLyDoVnt"), $("maHsba"), $("ngayVaoNoiTru")
+            , $("stt"), $("maCskb"), $("maTaiNan"), $("namNamLienTuc"), $("maDkbd"), $("ngayMienCct")
+            , $("maDoituongKcb"), $("createdAt"), $("updatedAt"), $("createdBy"), $("updatedBy")// đổi tên trường cho phù hợp với bảng Iceberg
     );
 
-    Table xml2Table = tableEnv.fromDataStream(
-            xml2Stream, $("maLk"), $("stt"), $("maThuoc"), $("maPpCheBien"), $("maCskcbThuoc"), $("maNhom")
+    Table patientTable = tableEnv.fromDataStream(
+            patientDataStream, $("diaChi"), $("dienThoai"), $("gioiTinh"), $("hoTen"), $("hoTenCha")
+            , $("hoTenMe"), $("maDanToc"), $("maNgheNghiep"), $("maQuocTich"), $("maHuyenCuTru"), $("maTinhCuTru")
+            , $("maXaCuTru"), $("ngaySinh"), $("nhomMau"), $("soCccd"), $("stt")// đổi tên trường cho phù hợp với bảng Iceberg
+    );
+
+    Table admisionGmedicalRecordTable = tableEnv.fromDataStream(
+            admisionGmedicalRecordDataStream, $("stt"), $("chanDoanRv"), $("chanDoanVao"), $("donVi"), $("duPhong"), $("ghiChu"), $("ketQuaDt")
+            , $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maLoaiKcb"), $("maLoaiRv"), $("maPtttQt"), $("maTtdv"), $("namQt")
+            , $("ngayTaiKham"), $("ngayTtoan"), $("nguoiGiamHo"), $("ppDieuTri"), $("qtBenhLy"), $("soNgayDt"), $("tBhtt")
+            , $("tBhttGdv"), $("tBncct"), $("tBntt"), $("tNguonKhac"), $("tThuoc"), $("tTongChiBh")
+            , $("tTongChiBv"), $("tVtyt"), $("tomTatKq"), $("thangQt")
+    );
+
+    Table admisionMedTable = tableEnv.fromDataStream(
+            admisionMedDataStream, $("maLk"), $("stt"), $("maThuoc"), $("maPpCheBien"), $("maCskcbThuoc"), $("maNhom")
             , $("tenThuoc"), $("donViTinh"), $("hamLuong"), $("duongDung"), $("dangBaoChe"), $("lieuDung"), $("cachDung")
             , $("soDangKy"), $("ttThau"), $("phamVi"), $("tyleTtBh"), $("soLuong"), $("donGia"), $("thanhTienBv")
             , $("thanhTienBh"), $("tNguonKhacNsnn"), $("tNguonKhacVtnn"), $("tNguonKhacVttn"), $("tNguonKhacCl"), $("tNguonKhac"), $("mucHuong")
@@ -171,123 +189,127 @@ public class App {
             , $("ngayThYl"), $("maPttt"), $("nguonCtra"), $("vetThuongTp"), $("duPhong")
     );
 
-    Table xml3Table = tableEnv.fromDataStream(
-            xml3Stream, $("maLk"), $("stt"), $("maDichVu"), $("maPtttQt"), $("maVatTu"), $("maNhom"), $("goiVtyt")
+    Table admisionEquipmentTable = tableEnv.fromDataStream(
+            chiTietDvktStream, $("maLk"), $("stt"), $("maDichVu"), $("maPtttQt"), $("maVatTu"), $("maNhom"), $("goiVtyt")
             , $("tenVatTu"), $("tenDichVu"), $("maXangDau"), $("donViTinh"), $("phamVi"), $("soLuong"), $("donGiaBv"), $("donGiaBh"), $("ttThau"), $("tyleTtDv")
             , $("tyleTtBh"), $("thanhTienBv"), $("thanhTienBh"), $("tTrantt"), $("mucHuong"), $("tNguonKhacNsnn"), $("tNguonKhacVtnn"), $("tNguonKhacVttn"), $("tNguonKhacCl")
             , $("tNguonKhac"), $("tBntt"), $("tBncct"), $("tBhtt"), $("maKhoa"), $("maGiuong"), $("maBacSi"), $("nguoiThucHien"), $("maBenh"), $("maBenhYhct")
             , $("ngayYl"), $("ngayThYl"), $("ngayKq"), $("maPttt"), $("vetThuongTp"), $("ppVoCam"), $("viTriThDvkt"), $("maMay"), $("maHieuSp")
             , $("taiSuDung"), $("duPhong")
     );
-    Table xml4Table = tableEnv.fromDataStream(
-            xml4Stream, $("maLk"), $("stt"), $("maDichVu"), $("maChiSo"), $("tenChiSo"), $("giaTri"), $("donViDo")
+    Table admisionSubclinicalTable = tableEnv.fromDataStream(
+            chiTietClsDataStream, $("maLk"), $("stt"), $("maDichVu"), $("maChiSo"), $("tenChiSo"), $("giaTri"), $("donViDo")
             , $("moTa"), $("ketLuan"), $("ngayKq"), $("maBsDocKq"), $("duPhong")
 
     );
-    Table xml5Table = tableEnv.fromDataStream(
-            xml5Stream, $("maLk"), $("stt"), $("dienBienLs"), $("giaiDoanBenh"), $("hoiChan"), $("phauThuat")
+    Table admisionClinicalTable = tableEnv.fromDataStream(
+            admisionClinicalDataStream, $("maLk"), $("stt"), $("dienBienLs"), $("giaiDoanBenh"), $("hoiChan"), $("phauThuat")
             , $("thoiDiemDbls"), $("nguoiThucHien"), $("duPhong")
 
     );
-    Table xml7Table = tableEnv.fromDataStream(
-            xml7Stream, $("maLk"), $("soLuuTru"), $("maYte"), $("maKhoaRv"), $("ngayVao"), $("ngayRa")
+    Table admisionDischargeTable = tableEnv.fromDataStream(
+            admisionDischargeDataStream, $("maLk"), $("soLuuTru"), $("maYte"), $("maKhoaRv"), $("ngayVao"), $("ngayRa")
             , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("thoiGianDinhChi"), $("tuoiThai"), $("chanDoanRv"), $("ppDieuTri"), $("ghiChu")
             , $("maTtdv"), $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam")
             , $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaiTruTuNgay"), $("ngoaiTruDenNgay"), $("duPhong")
     );
 
-    Table xml8Table = tableEnv.fromDataStream(
-            xml8Stream, $("maLk"), $("maLoaiKcb"), $("hoTenCha"), $("hoTenMe"), $("nguoiGiamHo"), $("donVi"), $("ngayVao")
-            , $("ngayRa"), $("chanDoanVao"), $("chanDoanRv"), $("qtBenhLy"), $("tomTatKq"), $("ppDieuTri"), $("ngaySinhCon"), $("ngayConChet")
-            , $("soConChet"), $("ketQuaDieuTri"), $("ghiChu"), $("maTtdv"), $("ngayCt"), $("maTheTam"), $("duPhong")
-    );
 
-    Table xml9Table = tableEnv.fromDataStream(
-            xml9Stream, $("maLk"), $("maBhxhNnd"), $("maTheNnd"), $("hoTenNnd"), $("ngaySinhNnd"), $("maDanTocNnd")
+
+    Table admisionBirthCertificateTable = tableEnv.fromDataStream(
+            admisionBirthCertificateDataStream, $("maLk"), $("maBhxhNnd"), $("maTheNnd"), $("hoTenNnd"), $("ngaySinhNnd"), $("maDanTocNnd")
             , $("soCccdNnd"), $("ngayCapCccdNnd"), $("noiCapCccdNnd"), $("noiCuTruNnd"), $("maQuocTich"), $("maTinhCuTru"), $("maHuyenCuTru")
             , $("maXaCuTru"), $("hoTenCha"), $("maTheTam"), $("hoTenCon"), $("gioiTinhCon"), $("soCon"), $("lanSinh"), $("soConSong")
             , $("canNangCon"), $("ngaySinhCon"), $("noiSinhCon"), $("tinhTrangCon"), $("sinhConPhauThuat"), $("sinhConDuoi32Tuan"), $("ghiChu")
             , $("nguoiDoDe"), $("nguoiGhiPhieu"), $("ngayCt"), $("so"), $("quyenSo"), $("maTtdv"), $("duPhong")
     );
 
-    Table xml10Table = tableEnv.fromDataStream(
-            xml10Stream, $("maLk"), $("soSeri"), $("soCt"), $("soNgay"), $("donVi"), $("chanDoanRv"), $("tuNgay")
+    Table admissionMaternityLeaveTable = tableEnv.fromDataStream(
+            admissionMaternityLeaveDataStream, $("maLk"), $("soSeri"), $("soCt"), $("soNgay"), $("donVi"), $("chanDoanRv"), $("tuNgay")
             , $("denNgay"), $("maTtdv"), $("tenBs"), $("maBs"), $("ngayCt"), $("duPhong")
     );
 
-    Table xml11Table = tableEnv.fromDataStream(
-            xml11Stream, $("maLk"), $("soCt"), $("soSeri"), $("soKcb"), $("donVi"), $("maBhxh"), $("maTheBhyt"), $("chanDoanRv"), $("ppDieuTri")
+    Table admisionBenefitLeaveTable = tableEnv.fromDataStream(
+            admisionBenefitLeaveDataStream, $("maLk"), $("soCt"), $("soSeri"), $("soKcb"), $("donVi"), $("maBhxh"), $("maTheBhyt"), $("chanDoanRv"), $("ppDieuTri")
             , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("tuoiThai"), $("soNgayNghi"), $("tuNgay"), $("denNgay"), $("hoTenCha"), $("hoTenMe"), $("maTtdv")
             , $("maBs"), $("ngayCt"), $("maTheTam"), $("mauSo"), $("duPhong")
     );
 
-    Table xml12Table = tableEnv.fromDataStream(
-            xml12Stream, $("nguoiChuTri"), $("chucVu"), $("ngayHop"), $("hoTen"), $("ngaySinh"), $("soCccd"), $("ngayCapCccd"), $("noiCapCccd"), $("diaChi"), $("maTinhCuTru")
+    Table admissionMedicalExamTable = tableEnv.fromDataStream(
+            admissionMedicalExamDataStream, $("nguoiChuTri"), $("chucVu"), $("ngayHop"), $("hoTen"), $("ngaySinh"), $("soCccd"), $("ngayCapCccd"), $("noiCapCccd"), $("diaChi"), $("maTinhCuTru")
             , $("maHuyenCuTru"), $("maXaCuTru"), $("maBhxh"), $("maTheBhyt"), $("ngheNghiep"), $("dienThoai"), $("maDoiTuong"), $("khamGiamDinh"), $("soBienBan"), $("tyleTtctCu")
             , $("dangHuongCheDo"), $("ngayChungTu"), $("soGiayGioiThieu"), $("ngayDeNghi"), $("maDonVi"), $("gioiThieuCua"), $("ketQuaKham"), $("soVanBanCanCu"), $("tyleTtctMoi"), $("tongTyleTtct"), $("dangKhuyettat")
             , $("mucDoKhuyettat"), $("deNghi"), $("duocXacDinh"), $("duPhong")
     );
 
 
-    Table xml13Table = tableEnv.fromDataStream(
-            xml13Stream, $("maLk"), $("soHoSo"), $("soChuyenTuyen"), $("giayChuyenTuyen"), $("maCskcb"), $("maNoiDi"), $("maNoiDen"), $("hoTen"), $("ngaySinh")
+    Table admisionReferralTable = tableEnv.fromDataStream(
+            admisionReferralDataStream, $("maLk"), $("soHoSo"), $("soChuyenTuyen"), $("giayChuyenTuyen"), $("maCskcb"), $("maNoiDi"), $("maNoiDen"), $("hoTen"), $("ngaySinh")
             , $("gioiTinh"), $("maQuocTich"), $("maDanToc"), $("maNgheNghiep"), $("diaChi"), $("maTheBhyt"), $("gtTheDen"), $("ngayVao"), $("ngayVaoNoiTru")
             , $("ngayRa"), $("dauHieuLs"), $("chanDoanRv"), $("qtBenhLy"), $("tomTatKq"), $("ppDieuTri"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct")
             , $("tenDichVu"), $("tenThuoc"), $("ppDieuTriDuplicate"), $("maLoaiRv"), $("maLyDoCt"), $("huongDieuTri"), $("phuongTienVc"), $("hoTenNguoiHt"), $("chucDanhNguoiHt")
             , $("maBacSi"), $("maTtdv"), $("duPhong")
     );
 
-    Table xml14Table = tableEnv.fromDataStream(
-            xml14Stream, $("maLk"), $("soGiayHenKl"), $("maCskcb"), $("hoTen"), $("ngaySinh"), $("gioiTinh"), $("diaChi"), $("maTheBhyt"), $("gtTheDen")
+    Table admisionAppointmentTable = tableEnv.fromDataStream(
+            admisionAppointmentDataStream, $("maLk"), $("soGiayHenKl"), $("maCskcb"), $("hoTen"), $("ngaySinh"), $("gioiTinh"), $("diaChi"), $("maTheBhyt"), $("gtTheDen")
             , $("ngayVao"), $("ngayVaoNoiTru"), $("ngayRa")
             , $("ngayHenKl"), $("chanDoanRv"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maDoiTuongKcb")
             , $("maBacSi"), $("maTtdv"), $("ngayCt")
             , $("duPhong")
     );
 
-    Table xml15Table = tableEnv.fromDataStream(
-            xml15Stream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("phanLoaiLaoViTri"), $("phanLoaiLaoTs")
+    Table admissionTuberculosisTable = tableEnv.fromDataStream(
+            chiTietDieuTriBenhLaoDataStream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("phanLoaiLaoViTri"), $("phanLoaiLaoTs")
             , $("phanLoaiLaoHiv"), $("phanLoaiLaoVk"), $("phanLoaiLaoKt"), $("loaiDtriLao"), $("ngayBdDtriLao"), $("phacDoDtriLao"), $("ngayKtDtriLao"), $("ketQuaDtriLao")
             , $("maCskcb"), $("ngayKdHiv"), $("bddtArv"), $("ngayBatDauDtCtx"), $("duPhong")
     );
 
     // Tạo view tạm cho Table
-    tableEnv.createTemporaryView("xml1_view", xml1Table);
-    tableEnv.createTemporaryView("xml2_view", xml2Table);
-    tableEnv.createTemporaryView("xml3_view", xml3Table);
-    tableEnv.createTemporaryView("xml4_view", xml4Table);
-    tableEnv.createTemporaryView("xml5_view", xml5Table);
-    tableEnv.createTemporaryView("xml7_view", xml7Table);
-    tableEnv.createTemporaryView("xml8_view", xml8Table);
-    tableEnv.createTemporaryView("xml9_view", xml9Table);
-    tableEnv.createTemporaryView("xml10_view", xml10Table);
-    tableEnv.createTemporaryView("xml11_view", xml11Table);
-    tableEnv.createTemporaryView("xml12_view", xml12Table);
-    tableEnv.createTemporaryView("xml13_view", xml13Table);
-    tableEnv.createTemporaryView("xml14_view", xml14Table);
-    tableEnv.createTemporaryView("xml15_view", xml15Table);
+    tableEnv.createTemporaryView("admision_checkin_view", admissionCheckinTable);
+    tableEnv.createTemporaryView("patient_view", patientTable);
+    tableEnv.createTemporaryView("admision_med_view", admisionMedTable);
+    tableEnv.createTemporaryView("admision_equipment_view", admisionEquipmentTable);
+    tableEnv.createTemporaryView("admision_subclinical_view", admisionSubclinicalTable);
+    tableEnv.createTemporaryView("admision_clinical_view", admisionClinicalTable);
+    tableEnv.createTemporaryView("admision_discharge_view", admisionDischargeTable);
+    tableEnv.createTemporaryView("admision_gmedical_record_view", admisionGmedicalRecordTable);
+    tableEnv.createTemporaryView("admision_birth_certificate_view", admisionBirthCertificateTable);
+    tableEnv.createTemporaryView("admission_maternity_leave_view", admissionMaternityLeaveTable);
+    tableEnv.createTemporaryView("admision_benefit_leave_view", admisionBenefitLeaveTable);
+    tableEnv.createTemporaryView("admission_medical_examTable_view", admissionMedicalExamTable);
+    tableEnv.createTemporaryView("admision_referral_view", admisionReferralTable);
+    tableEnv.createTemporaryView("admision_appointment_view", admisionAppointmentTable);
+    tableEnv.createTemporaryView("admission_tuberculosis_view", admissionTuberculosisTable);
 
     StatementSet stmt = tableEnv.createStatementSet();
     App.flinkQuery(stmt);
+    tableEnv.listTables();
+    // Query lại dữ liệu mới insert
+    String query = String.format(
+            "SELECT * FROM db_3179.admision_checkin WHERE id = '%s'", uuidCheckIn
+    );
+    tableEnv.executeSql(query);
     stmt.execute();
 
   }
 
   public static void flinkQuery(StatementSet stmt){
-    stmt.addInsertSql("INSERT INTO db_3179.admision_checkin SELECT * FROM xml1_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_med SELECT * FROM xml2_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_equipment SELECT * FROM xml3_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_subclinical SELECT * FROM xml4_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_clinical SELECT * FROM xml5_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_discharge SELECT * FROM xml7_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_medical_record SELECT * FROM xml8_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_birth_certificate SELECT * FROM xml9_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admission_maternity_leave SELECT * FROM xml10_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_benefit_leave SELECT * FROM xml11_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admission_medical_exam SELECT * FROM xml12_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_referral SELECT * FROM xml13_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admision_appointment SELECT * FROM xml14_view");
-    stmt.addInsertSql("INSERT INTO db_3179.admission_tuberculosis SELECT * FROM xml15_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_checkin SELECT * FROM admision_checkin_view");
+    stmt.addInsertSql("INSERT INTO db_3179.patient SELECT * FROM patient_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_med SELECT * FROM admision_med_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_equipment SELECT * FROM admision_equipment_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_subclinical SELECT * FROM admision_subclinical_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_clinical SELECT * FROM admision_clinical_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_discharge SELECT * FROM admision_discharge_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_medical_record SELECT * FROM admision_gmedical_record_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_birth_certificate SELECT * FROM admision_birth_certificate_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_maternity_leave SELECT * FROM admission_maternity_leave_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_benefit_leave SELECT * FROM admision_benefit_leave_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_medical_exam SELECT * FROM admission_medical_examTable_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_referral SELECT * FROM admision_referral_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_appointment SELECT * FROM admision_appointment_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_tuberculosis SELECT * FROM admission_tuberculosis_view");
   }
 
 
