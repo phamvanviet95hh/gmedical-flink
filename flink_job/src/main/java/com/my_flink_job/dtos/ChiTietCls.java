@@ -16,7 +16,7 @@ public class ChiTietCls {
     private String maDichVu;
 
     @JacksonXmlProperty(localName = "MA_CHI_SO")
-    private String maDichSo;
+    private String maChiSo;
 
     @JacksonXmlProperty(localName = "TEN_CHI_SO")
     private String tenChiSo;

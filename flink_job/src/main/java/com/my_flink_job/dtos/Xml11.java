@@ -42,10 +42,10 @@ public class Xml11 {
     private String nguyenNhanDinhChi;
 
     @JacksonXmlProperty(localName = "TUOI_THAI")
-    private Integer tuoiThai;
+    private String tuoiThai;
 
     @JacksonXmlProperty(localName = "SO_NGAY_NGHI")
-    private Integer soNgayNghi;
+    private String soNgayNghi;
 
     @JacksonXmlProperty(localName = "TU_NGAY")
     private String tuNgay;

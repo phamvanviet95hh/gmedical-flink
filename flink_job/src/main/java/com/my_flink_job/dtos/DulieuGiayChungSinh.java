@@ -58,19 +58,19 @@ public class DulieuGiayChungSinh {
     private String hoTenCon;
 
     @JacksonXmlProperty(localName = "GIOI_TINH_CON")
-    private Integer gioiTinhCon;
+    private String gioiTinhCon;
 
     @JacksonXmlProperty(localName = "SO_CON")
-    private Integer soCon;
+    private String soCon;
 
     @JacksonXmlProperty(localName = "LAN_SINH")
-    private Integer lanSinh;
+    private String lanSinh;
 
     @JacksonXmlProperty(localName = "SO_CON_SONG")
-    private Integer soConSong;
+    private String soConSong;
 
     @JacksonXmlProperty(localName = "CAN_NANG_CON")
-    private Double canNangCon;
+    private String canNangCon;
 
     @JacksonXmlProperty(localName = "NGAY_SINH_CON")
     private String ngaySinhCon;
@@ -79,13 +79,13 @@ public class DulieuGiayChungSinh {
     private String noiSinhCon;
 
     @JacksonXmlProperty(localName = "TINH_TRANG_CON")
-    private Integer tinhTrangCon;
+    private String tinhTrangCon;
 
     @JacksonXmlProperty(localName = "SINHCON_PHAUTHUAT")
-    private Integer sinhConPhauThuat;
+    private String sinhConPhauThuat;
 
     @JacksonXmlProperty(localName = "SINHCON_DUOI32TUAN")
-    private Integer sinhConDuoi32Tuan;
+    private String sinhConDuoi32Tuan;
 
     @JacksonXmlProperty(localName = "GHI_CHU")
     private String ghiChu;

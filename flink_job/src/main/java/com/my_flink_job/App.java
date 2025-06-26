@@ -3,8 +3,9 @@ package com.my_flink_job;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.my_flink_job.dtos.*;
+import com.my_flink_job.dtos.table.TableDtos;
 import com.my_flink_job.servicve.*;
-import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -28,9 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -66,7 +64,7 @@ public class App {
           EnvironmentSettings.newInstance().inStreamingMode().build());
   public static void main(String[] args) throws Exception {
 
-    env.enableCheckpointing(12000, CheckpointingMode.EXACTLY_ONCE);
+    env.enableCheckpointing(15000L, CheckpointingMode.EXACTLY_ONCE);
 
     logger1.info("Start create CATALOG: ----------------------------------------------------------------------- ");
     tableEnv.executeSql(
@@ -79,242 +77,217 @@ public class App {
                     "'ref'='main'," +
                     "'client.assume-role.region'='us-east-1'," +
                     "'warehouse' = 's3://warehouse'," +
-                    "'s3.endpoint'='http://191.168.112.2:9000'" +
+                    "'s3.endpoint'='http://10.6.8.29:9000'" +
                     ")"
     );
-    // List all catalogs
+    // Hiển thị tất cả catalogs
     TableResult result = tableEnv.executeSql("SHOW CATALOGS");
-
-    // Print the result to standard out
     result.print();
 
+    //Lựa chọn catalogs sử dụng
+    tableEnv.useCatalog("iceberg");
+
+
+    // Kiểm tra và tạo mới DATABASE theo DB
+    tableEnv.executeSql("CREATE DATABASE IF NOT EXISTS db_3179");
+
+    // Kiểm tra và tạo mới bảng
+    tableEnv.executeSql(TableDtos.admissionCheckin);
+    tableEnv.executeSql(TableDtos.admisionMed);
+    tableEnv.executeSql(TableDtos.admisionEquipment);
+    tableEnv.executeSql(TableDtos.admisionSubclinical);
+    tableEnv.executeSql(TableDtos.admisionClinical);
+    tableEnv.executeSql(TableDtos.admisionDischarge);
+    tableEnv.executeSql(TableDtos.admisionMedicalRecord);
+    tableEnv.executeSql(TableDtos.admisionBirthCertificate);
+    tableEnv.executeSql(TableDtos.admissionMaternityLeave);
+    tableEnv.executeSql(TableDtos.admisionBenefitLeave);
+    tableEnv.executeSql(TableDtos.admissionMedicalExam);
+    tableEnv.executeSql(TableDtos.admisionReferral);
+    tableEnv.executeSql(TableDtos.admisionAppointment);
+    tableEnv.executeSql(TableDtos.admissionTuberculosis);
 
     logger1.info("End create CATALOG: ----------------------------------------------------------------------- ");
     logger1.info("Start connect: -----------------------------------------------------------------------> ");
+    //Cấu hình kết nối Kafka
     KafkaSource<String> source = KafkaSource.<String>builder()
             .setBootstrapServers("10.6.8.29:9092")
             .setTopics("test-minio")
             .setGroupId("gmedical-id")
-            .setStartingOffsets(OffsetsInitializer.earliest())
+            .setStartingOffsets(OffsetsInitializer.latest())
             .setValueOnlyDeserializer(new SimpleStringSchema())
             .setProperty("commit.offsets.on.checkpoint", "true")
             .setProperty("auto.commit.interval.ms", "5000")
             .setProperty("enable.auto.commit", "false")
             .build();
 
+    //Nhận message từ Kafka job
     DataStream<String> text = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
     logger1.info("Connect Kafka Success: -----------------------------------------------------------------------> {}",text);
-//    text.map(new MapFunction<String, String>() {
-//      @Override
-//      public String map(String s) throws Exception {
-//
-//        pathMinio = s;
-//        return s;
-//      }
-//    }).rebalance().addSink(new MyIcebergSink());
 
     // map Kafka message (đường dẫn) -> FullXmlData object (chứa nhiều list con)
-    DataStream<String> rawXmlString = text.map(new MinioXmlFetcher());
-    DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString
-            .flatMap(new FullXmlParser());
-    fullXmlDataStream.print();
-    env.execute("Viet Bm");
+    DataStream<String> rawXmlString = text.flatMap(new MinioXmlFetcher());
+    DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
 
-  }
+    //Comvert Data theo XML
+    DataStream<Xml1> xml1Stream = fullXmlDataStream.flatMap(new Xml1Extractor());
+    DataStream<ChiTietThuoc> xml2Stream = fullXmlDataStream.flatMap(new Xml2Extractor());
+    DataStream<ChiTietDvkt> xml3Stream = fullXmlDataStream.flatMap(new Xml3Extractor());
+    DataStream<ChiTietCls> xml4Stream = fullXmlDataStream.flatMap(new Xml4Extractor());
+    DataStream<ChiTietDienBienBenh> xml5Stream = fullXmlDataStream.flatMap(new Xml5Extractor());
+    DataStream<Xml7> xml7Stream = fullXmlDataStream.flatMap(new Xml7Extractor());
+    DataStream<Xml8> xml8Stream = fullXmlDataStream.flatMap(new Xml8Extractor());
+    DataStream<DulieuGiayChungSinh> xml9Stream = fullXmlDataStream.flatMap(new Xml9Extractor());
+    DataStream<Xml10> xml10Stream = fullXmlDataStream.flatMap(new Xml10Extractor());
+    DataStream<Xml11> xml11Stream = fullXmlDataStream.flatMap(new Xml11Extractor());
+    DataStream<Xml12> xml12Stream = fullXmlDataStream.flatMap(new Xml12Extractor());
+    DataStream<Xml13> xml13Stream = fullXmlDataStream.flatMap(new Xml13Extractor());
+    DataStream<Xml14> xml14Stream = fullXmlDataStream.flatMap(new Xml14Extractor());
+    DataStream<ChiTietDieuTriBenhLao> xml15Stream = fullXmlDataStream.flatMap(new Xml15Extractor());
 
-  public static void dataMinio(String fileData) throws Exception {
-    logger1.info("Start minio: -----------------------------------------------------------------------> " + fileData);
-    // Implement your conversion logic here
-    // For example, you can read the InputStream and process it as needed
-    InputStream tmpFileData =  minioService.downloadFile(fileData);
-    App.convertData(tmpFileData);
-  }
 
-  public static void convertData(InputStream fileData) throws IOException, ParserConfigurationException, SAXException {
-    byte[] xmlBytes = toByteArray(fileData);
-    String xmlContent = new String(xmlBytes, StandardCharsets.UTF_8);
-
-    XmlMapper xmlMapper = new XmlMapper();
-    xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    // Parse XML thành DTO chính
-    GiamDinhHs giamDinhHs = xmlMapper.readValue(xmlContent, GiamDinhHs.class);
-    logger1.info("GiamDinhHs: -----------------------------------------------------------------------> " + giamDinhHs.getThongTinDonVi().getMaCSKCB());
-    // Parse XML để lấy các FILEHOSO
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder = factory.newDocumentBuilder();
-    Document document = builder.parse(new ByteArrayInputStream(xmlBytes));
-    NodeList fileHosoList = document.getElementsByTagName("FILEHOSO");
-
-    // Map ánh xạ LOAIHOSO -> class
-    Map<String, Class<?>> xmlClassMap = Map.ofEntries(
-            Map.entry("XML1", Xml1.class),
-            Map.entry("XML2", Xml2.class),
-            Map.entry("XML3", Xml3.class),
-            Map.entry("XML4", Xml4.class),
-            Map.entry("XML5", Xml5.class),
-            Map.entry("XML6", Xml6.class),
-            Map.entry("XML7", Xml7.class),
-            Map.entry("XML8", Xml8.class),
-            Map.entry("XML9", Xml9.class),
-            Map.entry("XML10", Xml10.class),
-            Map.entry("XML11", Xml11.class),
-            Map.entry("XML12", Xml12.class),
-            Map.entry("XML13", Xml13.class),
-            Map.entry("XML14", Xml14.class),
-            Map.entry("XML15", Xml15.class)
+    //Khởi tạo dữ liệu
+    Table xml1Table = tableEnv.fromDataStream(
+            xml1Stream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("ngaySinh")
+            , $("gioiTinh"), $("nhomMau"), $("maQuocTich"), $("maDanToc"), $("maNgheNghiep")
+            , $("diaChi"), $("maTinhCuTru"), $("maHuyenCuTru"), $("maXaCuTru"), $("dienThoai"), $("maTheBhyt"), $("maDkbd")
+            , $("gtTheTu"), $("gtTheDen"), $("ngayMienCct"), $("lyDoVv"), $("lyDoVnt"), $("maLyDoVnt"), $("chanDoanVao")
+            , $("chanDoanRv"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maPtttQt"), $("maDoiTuongKcb"), $("maNoiDi")
+            , $("maNoiDen"), $("maTaiNan"), $("ngayVao"), $("ngayVaoNoiTru"), $("ngayRa"), $("giayChuyenTuyen")
+            , $("soNgayDt"), $("ppDieuTri"), $("ketQuaDt"), $("maLoaiRv"), $("ghiChu"), $("ngayTtoan")
+            , $("tThuoc"), $("tVtyt"), $("tTongChiBv"), $("tTongChiBh"), $("tBntt"), $("tBncct")
+            , $("tBhtt"), $("tNguonKhac"), $("tBhttGdv"), $("namQt"), $("thangQt"), $("maLoaiKcb")
+            , $("maKhoa"), $("maCskcb"), $("maKhuVuc")
+            , $("canNang"), $("canNangCon"), $("namNamLienTuc"), $("ngayTaiKham"), $("maHsba"), $("maTtdv")
+            , $("duPhong")// đổi tên trường cho phù hợp với bảng Iceberg
     );
-    for (int i = 0; i < fileHosoList.getLength(); i++) {
-      Element fileHoso = (Element) fileHosoList.item(i);
-      String loaiHoso = fileHoso.getElementsByTagName("LOAIHOSO").item(0).getTextContent();
-      String encodedContent = fileHoso.getElementsByTagName("NOIDUNGFILE").item(0).getTextContent();
 
-      byte[] decodedBytes = Base64.getDecoder().decode(encodedContent);
-      String innerXml = new String(decodedBytes, StandardCharsets.UTF_8);
+    Table xml2Table = tableEnv.fromDataStream(
+            xml2Stream, $("maLk"), $("stt"), $("maThuoc"), $("maPpCheBien"), $("maCskcbThuoc"), $("maNhom")
+            , $("tenThuoc"), $("donViTinh"), $("hamLuong"), $("duongDung"), $("dangBaoChe"), $("lieuDung"), $("cachDung")
+            , $("soDangKy"), $("ttThau"), $("phamVi"), $("tyleTtBh"), $("soLuong"), $("donGia"), $("thanhTienBv")
+            , $("thanhTienBh"), $("tNguonKhacNsnn"), $("tNguonKhacVtnn"), $("tNguonKhacVttn"), $("tNguonKhacCl"), $("tNguonKhac"), $("mucHuong")
+            , $("tBntt"), $("tBncct"), $("tBhtt"), $("maKhoa"), $("maBacSi"), $("maDichVu"), $("ngayYl")
+            , $("ngayThYl"), $("maPttt"), $("nguonCtra"), $("vetThuongTp"), $("duPhong")
+    );
 
-      logger1.info("loaiHoso: -----------------------------------------------------------------------> " + loaiHoso);
-      Class<?> clazz = xmlClassMap.getOrDefault(loaiHoso, Xml1.class);
-      Object xmlObj = xmlMapper.readValue(innerXml, clazz);
+    Table xml3Table = tableEnv.fromDataStream(
+            xml3Stream, $("maLk"), $("stt"), $("maDichVu"), $("maPtttQt"), $("maVatTu"), $("maNhom"), $("goiVtyt")
+            , $("tenVatTu"), $("tenDichVu"), $("maXangDau"), $("donViTinh"), $("phamVi"), $("soLuong"), $("donGiaBv"), $("donGiaBh"), $("ttThau"), $("tyleTtDv")
+            , $("tyleTtBh"), $("thanhTienBv"), $("thanhTienBh"), $("tTrantt"), $("mucHuong"), $("tNguonKhacNsnn"), $("tNguonKhacVtnn"), $("tNguonKhacVttn"), $("tNguonKhacCl")
+            , $("tNguonKhac"), $("tBntt"), $("tBncct"), $("tBhtt"), $("maKhoa"), $("maGiuong"), $("maBacSi"), $("nguoiThucHien"), $("maBenh"), $("maBenhYhct")
+            , $("ngayYl"), $("ngayThYl"), $("ngayKq"), $("maPttt"), $("vetThuongTp"), $("ppVoCam"), $("viTriThDvkt"), $("maMay"), $("maHieuSp")
+            , $("taiSuDung"), $("duPhong")
+    );
+    Table xml4Table = tableEnv.fromDataStream(
+            xml4Stream, $("maLk"), $("stt"), $("maDichVu"), $("maChiSo"), $("tenChiSo"), $("giaTri"), $("donViDo")
+            , $("moTa"), $("ketLuan"), $("ngayKq"), $("maBsDocKq"), $("duPhong")
 
-      // Xử lý từng loại
-      if (xmlObj instanceof Xml1) {
-        Xml1 xml1 = (Xml1) xmlObj;
-        logger1.info("Xml1: {}", xml1.getHoTen());
+    );
+    Table xml5Table = tableEnv.fromDataStream(
+            xml5Stream, $("maLk"), $("stt"), $("dienBienLs"), $("giaiDoanBenh"), $("hoiChan"), $("phauThuat")
+            , $("thoiDiemDbls"), $("nguoiThucHien"), $("duPhong")
 
-//        DataStream<Tuple2<Long, String>> dataStream = env.fromElements(
-//                Tuple2.of(Long.valueOf(xml1.getStt()), xml1.getHoTen()));
-        // apply a map transformation to convert the Tuple2 to an ExampleData object
-//        DataStream<ExampleData> mappedStream = dataStream.map(new MapFunction<Tuple2<Long, String>, ExampleData>() {
-//          @Override
-//          public ExampleData map(Tuple2<Long, String> value) throws Exception {
-//            // perform your mapping logic here and return a ExampleData instance
-//            // for example:
-//            return new ExampleData(value.f0, value.f1);
-//          }
-//        });
+    );
+    Table xml7Table = tableEnv.fromDataStream(
+            xml7Stream, $("maLk"), $("soLuuTru"), $("maYte"), $("maKhoaRv"), $("ngayVao"), $("ngayRa")
+            , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("thoiGianDinhChi"), $("tuoiThai"), $("chanDoanRv"), $("ppDieuTri"), $("ghiChu")
+            , $("maTtdv"), $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam")
+            , $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaiTruTuNgay"), $("ngoaiTruDenNgay"), $("duPhong")
+    );
 
-      } else if (xmlObj instanceof Xml2) {
-        Xml2 xml2 = (Xml2) xmlObj;
-        if (xml2.getDanhSachChiTietThuoc() != null && xml2.getDanhSachChiTietThuoc().getChiTietThuoc().get(0).getMaLk() != null) {
-          logger1.info("Xml2: {}" , xml2.getDanhSachChiTietThuoc().getChiTietThuoc().get(0).getMaLk());
-        } else {
-          logger1.warn("Bỏ qua Xml2 vì thiếu getDanhSachChiTietThuoc hoặc maLk");
-        }
+    Table xml8Table = tableEnv.fromDataStream(
+            xml8Stream, $("maLk"), $("maLoaiKcb"), $("hoTenCha"), $("hoTenMe"), $("nguoiGiamHo"), $("donVi"), $("ngayVao")
+            , $("ngayRa"), $("chanDoanVao"), $("chanDoanRv"), $("qtBenhLy"), $("tomTatKq"), $("ppDieuTri"), $("ngaySinhCon"), $("ngayConChet")
+            , $("soConChet"), $("ketQuaDieuTri"), $("ghiChu"), $("maTtdv"), $("ngayCt"), $("maTheTam"), $("duPhong")
+    );
 
-      }else if (xmlObj instanceof Xml3) {
-        Xml3 xml3 = (Xml3) xmlObj;
-        if (xml3.getDsachChiTietDvkt() != null && xml3.getDsachChiTietDvkt().getChiTietDvkt().get(0).getMaLk() != null) {
-          logger1.info("Xml3: {}", xml3.getDsachChiTietDvkt().getChiTietDvkt().get(0).getMaLk());
-        } else {
-          logger1.warn("Bỏ qua Xml3 vì thiếu chiTietDvkt hoặc maLk");
-        }
-      }else if (xmlObj instanceof Xml4) {
-        Xml4 xml4 = (Xml4) xmlObj;
-        if (xml4.getDanhSachChiTietCls() != null &&
-                xml4.getDanhSachChiTietCls().getChiTietCls() != null &&
-                !xml4.getDanhSachChiTietCls().getChiTietCls().isEmpty() &&
-                xml4.getDanhSachChiTietCls().getChiTietCls().get(0).getMaLk() != null) {
-          logger1.info("Xml4: {}", xml4.getDanhSachChiTietCls().getChiTietCls().get(0).getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml4 vì thiếu getDanhSachChiTietCls hoặc maLk");
-        }
-      }else if (xmlObj instanceof Xml5) {
-        Xml5 xml5 = (Xml5) xmlObj;
-        if (xml5.getDsachChiTietDienBienBenh() != null &&
-                xml5.getDsachChiTietDienBienBenh().getChiTietDienBienBenhList() != null &&
-                !xml5.getDsachChiTietDienBienBenh().getChiTietDienBienBenhList().isEmpty() &&
-                xml5.getDsachChiTietDienBienBenh().getChiTietDienBienBenhList().get(0).getMaLk() != null) {
-          logger1.info("Xml5: {}", xml5.getDsachChiTietDienBienBenh().getChiTietDienBienBenhList().get(0).getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml5 vì thiếu getDsachChiTietDienBienBenh hoặc maLk");
-        }
-      }else if (xmlObj instanceof Xml6) {
-        Xml6 xml6 = (Xml6) xmlObj;
-        if (xml6.getHoSoBACSVADTHiv() != null && xml6.getHoSoBACSVADTHiv().getMaLk() != null) {
-          logger1.info("Xml6: {}", xml6.getHoSoBACSVADTHiv().getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml6 vì thiếu getHoSoBACSVADTHiv hoặc maLk");
-        }
-      }else if (xmlObj instanceof Xml7) {
-        Xml7 xml7 = (Xml7) xmlObj;
-        if (xml7.getMaLk() != null) {
-          logger1.info("Xml7: {}", xml7.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml7 vì thiếu maLk");
-        }
-      }else if (xmlObj instanceof Xml8) {
-        Xml8 xml8 = (Xml8) xmlObj;
-        if (xml8.getMaLk() != null) {
-          logger1.info("Xml8: {}", xml8.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml8 vì thiếu maLk");
-        }
-      }else if (xmlObj instanceof Xml9) {
-        Xml9 xml9 = (Xml9) xmlObj;
-        if (xml9.getDSachGiayChungSinh() != null &&
-                xml9.getDSachGiayChungSinh().getDulieuGiayChungSinhs() != null &&
-                !xml9.getDSachGiayChungSinh().getDulieuGiayChungSinhs().isEmpty() &&
-                xml9.getDSachGiayChungSinh().getDulieuGiayChungSinhs().get(0).getMaLk() != null) {
-          logger1.info("Xml9: {}", xml9.getDSachGiayChungSinh().getDulieuGiayChungSinhs().get(0).getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml9 vì thiếu getDSachGiayChungSinh hoặc maLk");
-        }
-      }else if (xmlObj instanceof Xml10) {
-        Xml10 xml10 = (Xml10) xmlObj;
-        if (xml10.getMaLk() != null) {
-          logger1.info("Xml10: {}", xml10.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml10 vì thiếu  maLk");
-        }
-      }else if (xmlObj instanceof Xml11) {
-        Xml11 xml11 = (Xml11) xmlObj;
-        if (xml11.getMaLk() != null) {
-          logger1.info("Xml11: {}", xml11.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml11 vì thiếu maLk");
-        }
-      }else if (xmlObj instanceof Xml12) {
-        Xml12 xml12 = (Xml12) xmlObj;
-        if (xml12.getHoTen() != null) {
-          logger1.info("Xml12: {}", xml12.getHoTen());
-        }else {
-          logger1.warn("Bỏ qua Xml12 vì thiếu getHoTen");
-        }
-      }else if (xmlObj instanceof Xml13) {
-        Xml13 xml13 = (Xml13) xmlObj;
-        if (xml13.getMaLk() != null) {
-          logger1.info("Xml13: {}", xml13.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml13 vì thiếu maLk");
-        }
-      }else if (xmlObj instanceof Xml14) {
-        Xml14 xml14 = (Xml14) xmlObj;
-        if (xml14.getMaLk() != null) {
-          logger1.info("Xml14: {}", xml14.getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml14 vì thiếu maLk");
-        }
-      }else if (xmlObj instanceof Xml15) {
-        Xml15 xml15 = (Xml15) xmlObj;
-        if (xml15.getDsachChiTietDieuTriBenhLao() != null &&
-                xml15.getDsachChiTietDieuTriBenhLao().getChiTietDieuTriBenhLaoList() != null &&
-                !xml15.getDsachChiTietDieuTriBenhLao().getChiTietDieuTriBenhLaoList().isEmpty() &&
-                xml15.getDsachChiTietDieuTriBenhLao().getChiTietDieuTriBenhLaoList().get(0).getMaLk() != null) {
-          logger1.info("Xml15: {}", xml15.getDsachChiTietDieuTriBenhLao().getChiTietDieuTriBenhLaoList().get(0).getMaLk());
-        }else {
-          logger1.warn("Bỏ qua Xml15 vì thiếu getDsachChiTietDieuTriBenhLao hoặc maLk");
-        }
-      }
+    Table xml9Table = tableEnv.fromDataStream(
+            xml9Stream, $("maLk"), $("maBhxhNnd"), $("maTheNnd"), $("hoTenNnd"), $("ngaySinhNnd"), $("maDanTocNnd")
+            , $("soCccdNnd"), $("ngayCapCccdNnd"), $("noiCapCccdNnd"), $("noiCuTruNnd"), $("maQuocTich"), $("maTinhCuTru"), $("maHuyenCuTru")
+            , $("maXaCuTru"), $("hoTenCha"), $("maTheTam"), $("hoTenCon"), $("gioiTinhCon"), $("soCon"), $("lanSinh"), $("soConSong")
+            , $("canNangCon"), $("ngaySinhCon"), $("noiSinhCon"), $("tinhTrangCon"), $("sinhConPhauThuat"), $("sinhConDuoi32Tuan"), $("ghiChu")
+            , $("nguoiDoDe"), $("nguoiGhiPhieu"), $("ngayCt"), $("so"), $("quyenSo"), $("maTtdv"), $("duPhong")
+    );
 
-    }
+    Table xml10Table = tableEnv.fromDataStream(
+            xml10Stream, $("maLk"), $("soSeri"), $("soCt"), $("soNgay"), $("donVi"), $("chanDoanRv"), $("tuNgay")
+            , $("denNgay"), $("maTtdv"), $("tenBs"), $("maBs"), $("ngayCt"), $("duPhong")
+    );
+
+    Table xml11Table = tableEnv.fromDataStream(
+            xml11Stream, $("maLk"), $("soCt"), $("soSeri"), $("soKcb"), $("donVi"), $("maBhxh"), $("maTheBhyt"), $("chanDoanRv"), $("ppDieuTri")
+            , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("tuoiThai"), $("soNgayNghi"), $("tuNgay"), $("denNgay"), $("hoTenCha"), $("hoTenMe"), $("maTtdv")
+            , $("maBs"), $("ngayCt"), $("maTheTam"), $("mauSo"), $("duPhong")
+    );
+
+    Table xml12Table = tableEnv.fromDataStream(
+            xml12Stream, $("nguoiChuTri"), $("chucVu"), $("ngayHop"), $("hoTen"), $("ngaySinh"), $("soCccd"), $("ngayCapCccd"), $("noiCapCccd"), $("diaChi"), $("maTinhCuTru")
+            , $("maHuyenCuTru"), $("maXaCuTru"), $("maBhxh"), $("maTheBhyt"), $("ngheNghiep"), $("dienThoai"), $("maDoiTuong"), $("khamGiamDinh"), $("soBienBan"), $("tyleTtctCu")
+            , $("dangHuongCheDo"), $("ngayChungTu"), $("soGiayGioiThieu"), $("ngayDeNghi"), $("maDonVi"), $("gioiThieuCua"), $("ketQuaKham"), $("soVanBanCanCu"), $("tyleTtctMoi"), $("tongTyleTtct"), $("dangKhuyettat")
+            , $("mucDoKhuyettat"), $("deNghi"), $("duocXacDinh"), $("duPhong")
+    );
+
+
+    Table xml13Table = tableEnv.fromDataStream(
+            xml13Stream, $("maLk"), $("soHoSo"), $("soChuyenTuyen"), $("giayChuyenTuyen"), $("maCskcb"), $("maNoiDi"), $("maNoiDen"), $("hoTen"), $("ngaySinh")
+            , $("gioiTinh"), $("maQuocTich"), $("maDanToc"), $("maNgheNghiep"), $("diaChi"), $("maTheBhyt"), $("gtTheDen"), $("ngayVao"), $("ngayVaoNoiTru")
+            , $("ngayRa"), $("dauHieuLs"), $("chanDoanRv"), $("qtBenhLy"), $("tomTatKq"), $("ppDieuTri"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct")
+            , $("tenDichVu"), $("tenThuoc"), $("ppDieuTriDuplicate"), $("maLoaiRv"), $("maLyDoCt"), $("huongDieuTri"), $("phuongTienVc"), $("hoTenNguoiHt"), $("chucDanhNguoiHt")
+            , $("maBacSi"), $("maTtdv"), $("duPhong")
+    );
+
+    Table xml14Table = tableEnv.fromDataStream(
+            xml14Stream, $("maLk"), $("soGiayHenKl"), $("maCskcb"), $("hoTen"), $("ngaySinh"), $("gioiTinh"), $("diaChi"), $("maTheBhyt"), $("gtTheDen")
+            , $("ngayVao"), $("ngayVaoNoiTru"), $("ngayRa")
+            , $("ngayHenKl"), $("chanDoanRv"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maDoiTuongKcb")
+            , $("maBacSi"), $("maTtdv"), $("ngayCt")
+            , $("duPhong")
+    );
+
+    Table xml15Table = tableEnv.fromDataStream(
+            xml15Stream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("phanLoaiLaoViTri"), $("phanLoaiLaoTs")
+            , $("phanLoaiLaoHiv"), $("phanLoaiLaoVk"), $("phanLoaiLaoKt"), $("loaiDtriLao"), $("ngayBdDtriLao"), $("phacDoDtriLao"), $("ngayKtDtriLao"), $("ketQuaDtriLao")
+            , $("maCskcb"), $("ngayKdHiv"), $("bddtArv"), $("ngayBatDauDtCtx"), $("duPhong")
+    );
+
+    // Tạo view tạm cho Table
+    tableEnv.createTemporaryView("xml1_view", xml1Table);
+    tableEnv.createTemporaryView("xml2_view", xml2Table);
+    tableEnv.createTemporaryView("xml3_view", xml3Table);
+    tableEnv.createTemporaryView("xml4_view", xml4Table);
+    tableEnv.createTemporaryView("xml5_view", xml5Table);
+    tableEnv.createTemporaryView("xml7_view", xml7Table);
+    tableEnv.createTemporaryView("xml8_view", xml8Table);
+    tableEnv.createTemporaryView("xml9_view", xml9Table);
+    tableEnv.createTemporaryView("xml10_view", xml10Table);
+    tableEnv.createTemporaryView("xml11_view", xml11Table);
+    tableEnv.createTemporaryView("xml12_view", xml12Table);
+    tableEnv.createTemporaryView("xml13_view", xml13Table);
+    tableEnv.createTemporaryView("xml14_view", xml14Table);
+    tableEnv.createTemporaryView("xml15_view", xml15Table);
+
+    StatementSet stmt = tableEnv.createStatementSet();
+    App.flinkQuery(stmt);
+    stmt.execute();
+
   }
-  public static byte[] toByteArray(InputStream input) throws IOException {
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    byte[] data = new byte[1024];
-    int nRead;
-    while ((nRead = input.read(data, 0, data.length)) != -1) {
-      buffer.write(data, 0, nRead);
-    }
-    return buffer.toByteArray();
+
+  public static void flinkQuery(StatementSet stmt){
+    stmt.addInsertSql("INSERT INTO db_3179.admision_checkin SELECT * FROM xml1_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_med SELECT * FROM xml2_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_equipment SELECT * FROM xml3_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_subclinical SELECT * FROM xml4_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_clinical SELECT * FROM xml5_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_discharge SELECT * FROM xml7_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_medical_record SELECT * FROM xml8_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_birth_certificate SELECT * FROM xml9_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_maternity_leave SELECT * FROM xml10_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_benefit_leave SELECT * FROM xml11_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_medical_exam SELECT * FROM xml12_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_referral SELECT * FROM xml13_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admision_appointment SELECT * FROM xml14_view");
+    stmt.addInsertSql("INSERT INTO db_3179.admission_tuberculosis SELECT * FROM xml15_view");
   }
 
 

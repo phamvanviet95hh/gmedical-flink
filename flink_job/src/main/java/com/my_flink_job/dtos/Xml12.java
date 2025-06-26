@@ -66,7 +66,7 @@ public class Xml12 {
     private String soBienBan;
 
     @JacksonXmlProperty(localName = "TYLE_TTCT_CU")
-    private Integer tyleTtctCu;
+    private String tyleTtctCu;
 
     @JacksonXmlProperty(localName = "DANG_HUONG_CHE_DO")
     private String dangHuongCheDo;
@@ -93,10 +93,10 @@ public class Xml12 {
     private String soVanBanCanCu;
 
     @JacksonXmlProperty(localName = "TYLE_TTCT_MOI")
-    private Integer tyleTtctMoi;
+    private String tyleTtctMoi;
 
     @JacksonXmlProperty(localName = "TONG_TYLE_TTCT")
-    private Integer tongTyleTtct;
+    private String tongTyleTtct;
 
     @JacksonXmlProperty(localName = "DANG_KHUYETTAT")
     private String dangKhuyettat;

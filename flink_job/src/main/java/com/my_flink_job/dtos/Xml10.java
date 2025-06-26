@@ -18,7 +18,7 @@ public class Xml10 {
     private String soCt;
 
     @JacksonXmlProperty(localName = "SO_NGAY")
-    private Integer soNgay;
+    private String soNgay;
 
     @JacksonXmlProperty(localName = "DON_VI")
     private String donVi;

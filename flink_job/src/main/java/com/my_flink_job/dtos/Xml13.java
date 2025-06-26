@@ -51,7 +51,7 @@ public class Xml13 {
     private String diaChi;
 
     @JacksonXmlProperty(localName = "MA_THE_BHYT")
-    private String maTheBHYT;
+    private String maTheBhyt;
 
     @JacksonXmlProperty(localName = "GT_THE_DEN")
     private String gtTheDen;
@@ -96,7 +96,7 @@ public class Xml13 {
     private String tenThuoc;
 
     @JacksonXmlProperty(localName = "PP_DIEU_TRI")
-    private String ppDieuTri2;
+    private String ppDieuTriDuplicate;
 
     @JacksonXmlProperty(localName = "MA_LOAI_RV")
     private String maLoaiRv;

@@ -10,7 +10,7 @@ public class ChiTietDieuTriBenhLao {
     private String maLk;
 
     @JacksonXmlProperty(localName = "STT")
-    private Integer stt;
+    private String stt;
 
     @JacksonXmlProperty(localName = "MA_BN")
     private String maBn;

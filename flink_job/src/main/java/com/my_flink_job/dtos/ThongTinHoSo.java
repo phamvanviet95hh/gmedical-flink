@@ -15,11 +15,9 @@ public class ThongTinHoSo {
     @JacksonXmlProperty(localName = "DANHSACHHOSO")
     public DanhSachHoSo danhSachHoSo;
 
-    @JacksonXmlProperty(localName = "CHUKYDONVI")
-    public ChuKyDv chuKyDv;
 
-    @JacksonXmlProperty(localName = "CHUKYDONVI")
-    public ChuKyDv chuKyDv;
+
+
 
 
 }

@@ -15,4 +15,10 @@ public class GiamDinhHs {
     @JacksonXmlProperty(localName = "THONGTINHOSO")
     private ThongTinHoSo thongTinHoSo;
 
+    @JacksonXmlProperty(localName = "CHUKYDONVI")
+    public String chuKyDv;
+
+    @JacksonXmlProperty(localName = "Signature")
+    public Signatures signatures;
+
 }

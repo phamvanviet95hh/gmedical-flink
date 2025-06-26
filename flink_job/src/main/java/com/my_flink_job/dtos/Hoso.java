@@ -11,6 +11,6 @@ public class Hoso {
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "FILEHOSO")
-    private List<FileHoSo> chiTietDienBienBenhList;
+    private List<FileHoSo> hoSoList;
 
 }

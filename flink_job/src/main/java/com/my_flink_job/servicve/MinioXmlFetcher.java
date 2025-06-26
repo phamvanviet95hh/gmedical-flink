@@ -1,9 +1,11 @@
 package com.my_flink_job.servicve;
 
 import io.minio.GetObjectArgs;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 import org.json.JSONObject;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -18,7 +20,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-public class MinioXmlFetcher extends RichMapFunction<String, String> {
+public class MinioXmlFetcher extends RichFlatMapFunction<String, String> {
     static Logger logger1 = LoggerFactory.getLogger(MinioXmlFetcher.class);
     private transient S3Client minioClient;
 
@@ -52,20 +54,34 @@ public class MinioXmlFetcher extends RichMapFunction<String, String> {
     }
 
     @Override
-    public String map(String objectKey) throws Exception {
-        JSONObject json = new JSONObject(objectKey);
-        // ✅ Lấy key từ JSON root level
-        String key = json.getString("Key"); // Đây là dạng không encode
-        // Tách bỏ tên bucket khỏi key nếu cần
-        String objectPath = key.replace("gmedical.lake/", "");
-        logger1.info("Key Minio: -----------------------------------------------------------------------> " + objectPath);
-        // ✅ Tạo request với key đã tách
+    public void flatMap(String objectKey, Collector<String> out) {
+        try {
+            JSONObject json = new JSONObject(objectKey);
+            String key = json.optString("Key", null);
+            if (key == null || key.isEmpty()) {
+                logger1.warn("No 'Key' found in: {}", objectKey);
+                return;
+            }
 
-        InputStream inputStream = this.s3Client().getObject(GetObjectRequest.builder()
-                .bucket("gmedical.lake")
-                .key(objectPath)
-                .build());
+            String objectPath = key.replace("gmedical.lake/", "");
+            logger1.info("Key Minio: {}", objectPath);
 
-        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            if (!objectPath.contains("3176")) {
+                logger1.info("END ETL path Fail for 3176");
+                return;
+            }
+
+            logger1.info("Start ETL for 3176");
+            InputStream inputStream = this.s3Client().getObject(GetObjectRequest.builder()
+                    .bucket("gmedical.lake")
+                    .key(objectPath)
+                    .build());
+
+            String result = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            out.collect(result);
+
+        } catch (Exception e) {
+            logger1.error("Failed to process objectKey: {}", objectKey, e);
+        }
     }
 }

@@ -13,7 +13,7 @@ public class Xml1 {
     }
 
     @JacksonXmlProperty(localName = "MA_LK")
-    private String maLk;
+    private Integer maLk;
 
     @JacksonXmlProperty(localName = "STT")
     private Integer stt;
@@ -127,7 +127,7 @@ public class Xml1 {
     private String giayChuyenTuyen;
 
     @JacksonXmlProperty(localName = "SO_NGAY_DTRI")
-    private Integer soNgayDt;
+    private String soNgayDt;
 
     @JacksonXmlProperty(localName = "PP_DIEU_TRI")
     private String ppDieuTri;
@@ -145,31 +145,31 @@ public class Xml1 {
     private String ngayTtoan;
 
     @JacksonXmlProperty(localName = "T_THUOC")
-    private Double tThuoc;
+    private String tThuoc;
 
     @JacksonXmlProperty(localName = "T_VTYT")
-    private Double tVtyt;
+    private String tVtyt;
 
     @JacksonXmlProperty(localName = "T_TONGCHI_BV")
-    private Double tTongChiBv;
+    private String tTongChiBv;
 
     @JacksonXmlProperty(localName = "T_TONGCHI_BH")
-    private Double tTongChiBh;
+    private String tTongChiBh;
 
     @JacksonXmlProperty(localName = "T_BNTT")
-    private Double tBntt;
+    private String tBntt;
 
     @JacksonXmlProperty(localName = "T_BNCCT")
-    private Double tBncct;
+    private String tBncct;
 
     @JacksonXmlProperty(localName = "T_BHTT")
-    private Double tBhtt;
+    private String tBhtt;
 
     @JacksonXmlProperty(localName = "T_NGUONKHAC")
-    private Double tNguonKhac;
+    private String tNguonKhac;
 
     @JacksonXmlProperty(localName = "T_BHTT_GDV")
-    private Double tBhttGdv;
+    private String tBhttGdv;
 
     @JacksonXmlProperty(localName = "NAM_QT")
     private Integer namQt;
@@ -190,7 +190,7 @@ public class Xml1 {
     private String maKhuVuc;
 
     @JacksonXmlProperty(localName = "CAN_NANG")
-    private Double canNang;
+    private String canNang;
 
     @JacksonXmlProperty(localName = "CAN_NANG_CON")
     private String canNangCon;
