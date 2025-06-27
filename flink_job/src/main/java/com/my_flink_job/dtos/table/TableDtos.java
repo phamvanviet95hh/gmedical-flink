@@ -7,7 +7,7 @@ public class TableDtos {
             " gtTheDen String , duPhong String, maNoiDen String, maNoiDi String, ngayVao String, " +
             " ngayRa String, maTheBhyt String, maLyDoVnt String, maHsba String, ngayVaoNoiTru String, " +
             " stt String, maCskb String, maTaiNan String, namNamLienTuc String, maDkbd String , ngayMienCct String, " +
-            " maDoituongKcb String, createdAt String, updatedAt String, createdBy String, updatedBy String, PRIMARY KEY (maLk) NOT ENFORCED) " +
+            " maDoituongKcb String, createdAt String, updatedAt String, createdBy String, updatedBy String, patient_id STRING, PRIMARY KEY (maLk) NOT ENFORCED) " +
             "  WITH (\n" +
             "  'write.metadata.delete-after-commit.enabled' = 'true',\n" +
             "  'write.metadata.previous-versions-max' = '1',\n" +
@@ -17,13 +17,13 @@ public class TableDtos {
             "  'write.format.default' = 'parquet', 'connector' = 'print'\n" +
             ")";
     public static String admisionMed ="CREATE TABLE IF NOT EXISTS db_3179.admision_med(" +
-            "maLk STRING, stt STRING, maThuoc STRING, maPpCheBien STRING" +
+            " createdAt String, updatedAt String, stt STRING, maThuoc STRING, maPpCheBien STRING" +
             ", maCskcbThuoc STRING, maNhom STRING, tenThuoc STRING, donViTinh STRING, hamLuong STRING , duongDung STRING , dangBaoChe STRING" +
             ", lieuDung STRING , cachDung STRING, soDangKy STRING, ttThau STRING, phamVi STRING, tyleTtBh STRING" +
             ", soLuong STRING, donGia STRING, thanhTienBv STRING, thanhTienBh STRING, tNguonKhacNsnn STRING, tNguonKhacVtnn STRING, tNguonKhacVttn STRING, tNguonKhacCl STRING" +
             ", tNguonKhac STRING, mucHuong STRING, tBntt STRING, tBncct STRING, tBhtt STRING, maKhoa STRING, maBacSi STRING, maDichVu STRING" +
             ", ngayYl STRING, ngayThYl STRING, maPttt STRING, nguonCtra STRING," +
-            " vetThuongTp STRING, duPhong STRING, PRIMARY KEY (maLk) NOT ENFORCED) WITH (\n" +
+            " vetThuongTp STRING, duPhong STRING, admision_checkin_uuid String, maLk STRING) WITH (\n" +
             "  'write.metadata.delete-after-commit.enabled' = 'true',\n" +
             "  'write.metadata.previous-versions-max' = '1',\n" +
             "  'write.metadata.auto-merge.enabled' = 'false',\n" +
@@ -80,7 +80,7 @@ public class TableDtos {
             " ngayTaiKham String, ngayTtoan String, nguoiGiamHo String" +
             ", ppDieuTri String, qtBenhLy String, soNgayDt String, tBhtt String, tBhttGdv String, tBncct String," +
             " tBntt String, tNguonKhac String, tThuoc String, tTongChiBh String, tTongChiBv String, tVtyt String, " +
-            " tomTatKq String, thangQt String, PRIMARY KEY (stt) NOT ENFORCED)" +
+            " tomTatKq String, thangQt String, createdAt String, updatedAt String, admision_checkin_uuid String, PRIMARY KEY (stt) NOT ENFORCED)" +
             " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
             " 'write.metadata.previous-versions-max' = '1'," +
             " 'write.metadata.auto-merge.enabled' = 'false'," +
@@ -166,8 +166,9 @@ public class TableDtos {
             " 'write.format.default' = 'parquet')";
 
     public static String patient ="CREATE TABLE IF NOT EXISTS db_3179.patient(" +
-            " diaChi String, dienThoai String, gioiTinh String, hoTen String, hoTenCha String, hoTenMe String, maDanToc String, maNgheNghiep String" +
-            ", maQuocTich String, maHuyenCuTru String, maTinhCuTru String, maXaCuTru String, ngaySinh String, nhomMau String, soCccd String, stt String, PRIMARY KEY (stt) NOT ENFORCED)" +
+            " uuid String, diaChi String, dienThoai String, gioiTinh String, hoTen String, hoTenCha String, hoTenMe String, maDanToc String, maNgheNghiep String" +
+            ", maQuocTich String, maHuyenCuTru String, maTinhCuTru String, maXaCuTru String, ngaySinh String, nhomMau String, soCccd String, stt String," +
+            " createdAt String, updatedAt String, PRIMARY KEY (soCccd, dienThoai) NOT ENFORCED)" +
             " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
             " 'write.metadata.previous-versions-max' = '1'," +
             " 'write.metadata.auto-merge.enabled' = 'false'," +

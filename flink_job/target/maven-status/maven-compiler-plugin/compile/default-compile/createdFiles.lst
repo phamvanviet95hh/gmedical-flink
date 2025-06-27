@@ -2,6 +2,7 @@ com\my_flink_job\servicve\MyIcebergSink.class
 com\my_flink_job\dtos\ChiTietThuoc.class
 com\my_flink_job\dtos\ChiTietDieuTriBenhLao.class
 com\my_flink_job\dtos\Xml7.class
+com\my_flink_job\servicve\PatientCheckinExtractor.class
 com\my_flink_job\dtos\RSAKeyValue.class
 com\my_flink_job\dtos\iceberg\AdmissionCheckin$AdmissionCheckinBuilder.class
 com\my_flink_job\dtos\KeyInfo.class
@@ -43,6 +44,7 @@ com\my_flink_job\dtos\DsachChiTietDieuTriBenhLao.class
 com\my_flink_job\dtos\ChiTietDvkt.class
 com\my_flink_job\dtos\iceberg\AdmissionAppointment.class
 com\my_flink_job\dtos\DSachGiayChungSinh.class
+com\my_flink_job\dtos\iceberg\AdmisionMed.class
 com\my_flink_job\servicve\Xml10Extractor.class
 com\my_flink_job\servicve\MinioS3Reader.class
 com\my_flink_job\servicve\Xml15Extractor.class
@@ -51,6 +53,7 @@ com\my_flink_job\dtos\Xml2.class
 com\my_flink_job\dtos\DanhSachChiTietThuoc.class
 com\my_flink_job\dtos\HoSoBACSVADTHiv.class
 com\my_flink_job\dtos\iceberg\Admision_Medical_Record$Admision_Medical_RecordBuilder.class
+com\my_flink_job\dtos\iceberg\AdmisionMed$AdmisionMedBuilder.class
 com\my_flink_job\dtos\Xml5.class
 com\my_flink_job\dtos\Reference.class
 com\my_flink_job\dtos\Xml11.class

@@ -45,5 +45,6 @@ public class AdmissionCheckin {
     private String updatedBy;
     private String stt;//
     private String maCskb;//
+    private String patient_id;//
 
 }

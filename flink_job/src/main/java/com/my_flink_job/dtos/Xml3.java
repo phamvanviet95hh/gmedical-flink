@@ -11,7 +11,6 @@ import java.util.List;
 @JacksonXmlRootElement(localName = "CHITIEU_CHITIET_DVKT_VTYT")
 public class Xml3 {
 
-
     @JacksonXmlProperty(localName = "DSACH_CHI_TIET_DVKT")
     private DSachChiTietDVKT dsachChiTietDvkt;
 

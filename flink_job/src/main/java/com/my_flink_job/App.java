@@ -3,18 +3,19 @@ package com.my_flink_job;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.my_flink_job.dtos.*;
+import com.my_flink_job.dtos.iceberg.AdmisionMed;
 import com.my_flink_job.dtos.iceberg.Admision_Medical_Record;
 import com.my_flink_job.dtos.iceberg.AdmissionCheckin;
 import com.my_flink_job.dtos.iceberg.Patient;
 import com.my_flink_job.dtos.table.TableDtos;
 import com.my_flink_job.servicve.*;
+import org.apache.flink.api.java.tuple.*;
 import org.apache.flink.table.api.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
@@ -30,11 +31,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
-import java.util.Base64;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.types.Row;
+import org.apache.flink.util.CloseableIterator;
 import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -50,6 +51,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 
 import static org.apache.flink.table.api.Expressions.$;
 
@@ -113,6 +115,8 @@ public class App {
     tableEnv.executeSql(TableDtos.admissionTuberculosis);
     tableEnv.executeSql(TableDtos.patient);
 
+    StatementSet stmt = tableEnv.createStatementSet();
+
     logger1.info("End create CATALOG: ----------------------------------------------------------------------- ");
     logger1.info("Start connect: -----------------------------------------------------------------------> ");
     //Cấu hình kết nối Kafka
@@ -137,12 +141,28 @@ public class App {
     DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
 
     //Comvert Data theo XML
-    DataStream<AdmissionCheckin> admissionCheckinDataStream = fullXmlDataStream.flatMap(new Xml1Extractor(uuidCheckIn));
-    logger1.info("admissionCheckinDataStream : {}", admissionCheckinDataStream.keyBy("id"));
-    DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = fullXmlDataStream.flatMap(new Xml8Extractor());
-    DataStream<Patient> patientDataStream = fullXmlDataStream.flatMap(new PatientExtractor());
+    DataStream<Tuple4<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>>> combinedStream = fullXmlDataStream.flatMap(new PatientCheckinExtractor());
 
-    DataStream<ChiTietThuoc> admisionMedDataStream = fullXmlDataStream.flatMap(new Xml2Extractor());
+    DataStream<Patient> patientDataStream = combinedStream.map(t -> t.f0).filter(Objects::nonNull);
+    DataStream<AdmissionCheckin> admissionCheckinDataStream = combinedStream.map(t -> t.f1);
+    DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = combinedStream.map(t -> t.f2);
+    DataStream<AdmisionMed> admisionMedDataStream = combinedStream
+            .flatMap((Tuple4<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>> t, Collector<AdmisionMed> out) -> {
+              if (t.f3 != null) {
+                for (AdmisionMed med : t.f3) {
+                  out.collect(med);
+                }
+              }
+            })
+            .returns(AdmisionMed.class);
+
+//    DataStream<Patient> patientDataStream = fullXmlDataStream.flatMap(new PatientExtractor(uuidCheckIn));
+//    DataStream<AdmissionCheckin> admissionCheckinDataStream = fullXmlDataStream.flatMap(new Xml1Extractor(uuidCheckIn));
+
+//     DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = fullXmlDataStream.flatMap(new Xml8Extractor());
+
+
+//    DataStream<ChiTietThuoc> admisionMedDataStream = fullXmlDataStream.flatMap(new Xml2Extractor());
 
     DataStream<ChiTietDvkt> chiTietDvktStream = fullXmlDataStream.flatMap(new Xml3Extractor());
     DataStream<ChiTietCls> chiTietClsDataStream = fullXmlDataStream.flatMap(new Xml4Extractor());
@@ -163,30 +183,34 @@ public class App {
             , $("canNang"), $("gtTheTu"), $("gtTheDen"), $("duPhong"), $("maNoiDen"), $("maNoiDi")
             , $("ngayVao"), $("ngayRa"), $("maTheBhyt"), $("maLyDoVnt"), $("maHsba"), $("ngayVaoNoiTru")
             , $("stt"), $("maCskb"), $("maTaiNan"), $("namNamLienTuc"), $("maDkbd"), $("ngayMienCct")
-            , $("maDoituongKcb"), $("createdAt"), $("updatedAt"), $("createdBy"), $("updatedBy")// đổi tên trường cho phù hợp với bảng Iceberg
+            , $("maDoituongKcb"), $("createdAt"), $("updatedAt"), $("createdBy"), $("updatedBy"), $("patient_id")// đổi tên trường cho phù hợp với bảng Iceberg
     );
+    if (patientDataStream != null){
+      Table patientTable = tableEnv.fromDataStream(
+              patientDataStream, $("uuid"), $("diaChi"), $("dienThoai"), $("gioiTinh"), $("hoTen"), $("hoTenCha")
+              , $("hoTenMe"), $("maDanToc"), $("maNgheNghiep"), $("maQuocTich"), $("maHuyenCuTru"), $("maTinhCuTru")
+              , $("maXaCuTru"), $("ngaySinh"), $("nhomMau"), $("soCccd"), $("stt"), $("createdAt"), $("updatedAt")// đổi tên trường cho phù hợp với bảng Iceberg
+      );
+      tableEnv.createTemporaryView("patient_view", patientTable);
+      stmt.addInsertSql("INSERT INTO db_3179.patient SELECT * FROM patient_view");
+    }
 
-    Table patientTable = tableEnv.fromDataStream(
-            patientDataStream, $("diaChi"), $("dienThoai"), $("gioiTinh"), $("hoTen"), $("hoTenCha")
-            , $("hoTenMe"), $("maDanToc"), $("maNgheNghiep"), $("maQuocTich"), $("maHuyenCuTru"), $("maTinhCuTru")
-            , $("maXaCuTru"), $("ngaySinh"), $("nhomMau"), $("soCccd"), $("stt")// đổi tên trường cho phù hợp với bảng Iceberg
-    );
 
     Table admisionGmedicalRecordTable = tableEnv.fromDataStream(
             admisionGmedicalRecordDataStream, $("stt"), $("chanDoanRv"), $("chanDoanVao"), $("donVi"), $("duPhong"), $("ghiChu"), $("ketQuaDt")
             , $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maLoaiKcb"), $("maLoaiRv"), $("maPtttQt"), $("maTtdv"), $("namQt")
             , $("ngayTaiKham"), $("ngayTtoan"), $("nguoiGiamHo"), $("ppDieuTri"), $("qtBenhLy"), $("soNgayDt"), $("tBhtt")
             , $("tBhttGdv"), $("tBncct"), $("tBntt"), $("tNguonKhac"), $("tThuoc"), $("tTongChiBh")
-            , $("tTongChiBv"), $("tVtyt"), $("tomTatKq"), $("thangQt")
+            , $("tTongChiBv"), $("tVtyt"), $("tomTatKq"), $("thangQt"), $("createdAt"), $("updatedAt"), $("admision_checkin_uuid")
     );
 
     Table admisionMedTable = tableEnv.fromDataStream(
-            admisionMedDataStream, $("maLk"), $("stt"), $("maThuoc"), $("maPpCheBien"), $("maCskcbThuoc"), $("maNhom")
+            admisionMedDataStream, $("createdAt"), $("updatedAt"), $("stt"), $("maThuoc"), $("maPpCheBien"), $("maCskcbThuoc"), $("maNhom")
             , $("tenThuoc"), $("donViTinh"), $("hamLuong"), $("duongDung"), $("dangBaoChe"), $("lieuDung"), $("cachDung")
             , $("soDangKy"), $("ttThau"), $("phamVi"), $("tyleTtBh"), $("soLuong"), $("donGia"), $("thanhTienBv")
             , $("thanhTienBh"), $("tNguonKhacNsnn"), $("tNguonKhacVtnn"), $("tNguonKhacVttn"), $("tNguonKhacCl"), $("tNguonKhac"), $("mucHuong")
             , $("tBntt"), $("tBncct"), $("tBhtt"), $("maKhoa"), $("maBacSi"), $("maDichVu"), $("ngayYl")
-            , $("ngayThYl"), $("maPttt"), $("nguonCtra"), $("vetThuongTp"), $("duPhong")
+            , $("ngayThYl"), $("maPttt"), $("nguonCtra"), $("vetThuongTp"), $("duPhong"), $("admision_checkin_uuid"), $("maLk")
     );
 
     Table admisionEquipmentTable = tableEnv.fromDataStream(
@@ -213,8 +237,6 @@ public class App {
             , $("maTtdv"), $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam")
             , $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaiTruTuNgay"), $("ngoaiTruDenNgay"), $("duPhong")
     );
-
-
 
     Table admisionBirthCertificateTable = tableEnv.fromDataStream(
             admisionBirthCertificateDataStream, $("maLk"), $("maBhxhNnd"), $("maTheNnd"), $("hoTenNnd"), $("ngaySinhNnd"), $("maDanTocNnd")
@@ -267,7 +289,6 @@ public class App {
 
     // Tạo view tạm cho Table
     tableEnv.createTemporaryView("admision_checkin_view", admissionCheckinTable);
-    tableEnv.createTemporaryView("patient_view", patientTable);
     tableEnv.createTemporaryView("admision_med_view", admisionMedTable);
     tableEnv.createTemporaryView("admision_equipment_view", admisionEquipmentTable);
     tableEnv.createTemporaryView("admision_subclinical_view", admisionSubclinicalTable);
@@ -282,21 +303,13 @@ public class App {
     tableEnv.createTemporaryView("admision_appointment_view", admisionAppointmentTable);
     tableEnv.createTemporaryView("admission_tuberculosis_view", admissionTuberculosisTable);
 
-    StatementSet stmt = tableEnv.createStatementSet();
     App.flinkQuery(stmt);
-    tableEnv.listTables();
-    // Query lại dữ liệu mới insert
-    String query = String.format(
-            "SELECT * FROM db_3179.admision_checkin WHERE id = '%s'", uuidCheckIn
-    );
-    tableEnv.executeSql(query);
     stmt.execute();
 
   }
 
   public static void flinkQuery(StatementSet stmt){
     stmt.addInsertSql("INSERT INTO db_3179.admision_checkin SELECT * FROM admision_checkin_view");
-    stmt.addInsertSql("INSERT INTO db_3179.patient SELECT * FROM patient_view");
     stmt.addInsertSql("INSERT INTO db_3179.admision_med SELECT * FROM admision_med_view");
     stmt.addInsertSql("INSERT INTO db_3179.admision_equipment SELECT * FROM admision_equipment_view");
     stmt.addInsertSql("INSERT INTO db_3179.admision_subclinical SELECT * FROM admision_subclinical_view");

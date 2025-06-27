@@ -43,6 +43,9 @@ public class Admision_Medical_Record {
     public String tVtyt;
     public String tomTatKq;
     public String thangQt;
+    public String createdAt;//
+    public String updatedAt;//
+    public String admision_checkin_uuid;
 
 
 }

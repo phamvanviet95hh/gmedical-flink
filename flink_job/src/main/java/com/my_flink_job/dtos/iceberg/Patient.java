@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Patient {
 
+    private String uuid;
     private String diaChi;
     private String dienThoai;
     private String gioiTinh;
@@ -27,5 +28,7 @@ public class Patient {
     private String nhomMau;
     private String soCccd;
     private String stt;
+    private String createdAt;//
+    private String updatedAt;//
 
 }

@@ -84,6 +84,8 @@ RUN curl -L https://repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffein
 
 RUN curl -L https://repo1.maven.org/maven2/org/apache/avro/avro/1.11.1/avro-1.11.1.jar  -o /opt/flink/lib/avro-1.11.1.jar
 
+RUN curl -L https://repo1.maven.org/maven2/com/clickhouse/clickhouse-jdbc/0.4.6/clickhouse-jdbc-0.4.6.jar -o /opt/flink/lib/clickhouse-jdbc-0.4.6.jar
+
 ## Install Nano to edit files
 RUN apt update && apt install -y nano
 

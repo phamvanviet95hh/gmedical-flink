@@ -28,6 +28,7 @@ E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml11.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\ChiTietDienBienBenh.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\KeyValue.java
+E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\iceberg\AdmisionMed.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\GiamDinhHs.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\FileHoSo.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml1.java
@@ -59,6 +60,7 @@ E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\Xml4Extractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml9.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml3.java
+E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\servicve\PatientCheckinExtractor.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\ThongTinHoSo.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Reference.java
 E:\app-msc\gmedical\29\gmedical-flink_3176\flink_job\src\main\java\com\my_flink_job\dtos\Xml10.java
