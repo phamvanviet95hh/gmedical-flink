@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Admision_Medical_Record {
 
+    public String uuid;
     public String stt;
     public String chanDoanRv;
     public String chanDoanVao;

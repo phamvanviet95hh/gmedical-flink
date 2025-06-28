@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AdmisionMed {
+    private String uuid;
 
     private String createdAt;
     private String updatedAt;

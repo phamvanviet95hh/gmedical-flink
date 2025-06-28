@@ -2,15 +2,9 @@ package com.my_flink_job.servicve;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.my_flink_job.dtos.*;
-import com.my_flink_job.dtos.iceberg.AdmisionMed;
-import com.my_flink_job.dtos.iceberg.Admision_Medical_Record;
-import com.my_flink_job.dtos.iceberg.AdmissionCheckin;
-import com.my_flink_job.dtos.iceberg.Patient;
+import com.my_flink_job.dtos.iceberg.*;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple14;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.*;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
@@ -27,7 +21,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tuple4<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>>> {
+public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>,List<AdmisionEquipment>,List<AdmisionSubclinical>>> {
 
     XmlMapper xmlMapper = new XmlMapper();
     Logger logger1 = LoggerFactory.getLogger(Xml1Extractor.class);
@@ -45,12 +39,16 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
     }
 
     @Override
-    public void flatMap(GiamDinhHs giamDinhHs, Collector<Tuple4<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>>> collector) throws Exception {
+    public void flatMap(GiamDinhHs giamDinhHs, Collector<Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,List<AdmisionSubclinical>>> collector) throws Exception {
         AdmissionCheckin admissionCheckin =null;
         Admision_Medical_Record admisionMedicalRecord = null;
         Patient patient = null;
         AdmisionMed admisionMed = null;
+        AdmisionEquipment admisionEquipment = null;
         List<AdmisionMed> admisionMedList = new ArrayList<>();
+        List<AdmisionEquipment> admisionEquipmentList = new ArrayList<>();
+        AdmisionSubclinical admisionSubclinical =null;
+        List<AdmisionSubclinical> admisionSubclinicalsList = new ArrayList<>();
         Xml1 xml1 = null;
         Xml2 xml2 = null;
         Xml3 xml3 = null;
@@ -92,9 +90,8 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
                             patientUuid = rs.getString("uuid");
                         } else {
                             logger1.info("Chưa tồn tại Patient");
-                            patientUuid = uuid;
                             patient = Patient.builder()
-                                    .uuid(uuid)
+                                    .uuid(UUID.randomUUID().toString())
                                     .stt(xml1.getStt())
                                     .diaChi(xml1.getDiaChi())
                                     .dienThoai(xml1.getDienThoai())
@@ -148,10 +145,12 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
                             .updatedBy(null)
                             .stt(xml1.getStt())
                             .maCskb(xml1.getMaCskcb())
-                            .patient_id(patientUuid)
+                            .patient_id(patient == null ? patientUuid : patient.getUuid())
                             .build();
 
+
                     admisionMedicalRecord = Admision_Medical_Record.builder()
+                            .uuid(UUID.randomUUID().toString())
                             .stt(xml1.getStt())
                             .chanDoanRv(xml1.getChanDoanRv())
                             .chanDoanVao(xml1.getChanDoanVao())
@@ -199,6 +198,7 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
                         if (listThuoc != null) {
                             for (ChiTietThuoc chiTietThuoc : listThuoc) {
                                 admisionMed = AdmisionMed.builder()
+                                        .uuid(UUID.randomUUID().toString())
                                         .createdAt(LocalDateTime.now().toString())
                                         .updatedAt(LocalDateTime.now().toString())
                                         .stt(chiTietThuoc.getStt())
@@ -248,12 +248,103 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
                             }
                         }
                     }
-
-
                     break;
                 case "XML3":
+                    xml3 = xmlMapper.readValue(innerXml, Xml3.class);
+                    if (xml3 != null
+                            && xml3.getDsachChiTietDvkt() != null
+                            && xml3.getDsachChiTietDvkt().getChiTietDvkt() != null) {
+                        List<ChiTietDvkt> tietDvktList = xml3.getDsachChiTietDvkt().getChiTietDvkt();
+
+                        if (tietDvktList != null) {
+                            for (ChiTietDvkt chiTietDvkt : tietDvktList) {
+                                admisionEquipment = AdmisionEquipment.builder()
+                                        .uuid(UUID.randomUUID().toString())
+                                        .createdAt(LocalDateTime.now().toString())
+                                        .updatedAt(LocalDateTime.now().toString())
+                                        .donGiaBh(chiTietDvkt.getDonGiaBh())
+                                        .donGiaBv(chiTietDvkt.getDonGiaBv())
+                                        .donViTinh(chiTietDvkt.getDonViTinh())
+                                        .duPhong(chiTietDvkt.getDuPhong())
+                                        .goiVtyt(chiTietDvkt.getGoiVtyt())
+                                        .maBacSi(chiTietDvkt.getMaBacSi())
+                                        .maBenh(chiTietDvkt.getMaBenh())
+                                        .maBenhYhct(chiTietDvkt.getMaBenhYhct())
+                                        .maDichVu(chiTietDvkt.getMaDichVu())
+                                        .maGiuong(chiTietDvkt.getMaGiuong())
+                                        .maHieuSp(chiTietDvkt.getMaHieuSp())
+                                        .maKhoa(chiTietDvkt.getMaKhoa())
+                                        .maMay(chiTietDvkt.getMaMay())
+                                        .maNhom(chiTietDvkt.getMaNhom())
+                                        .maPttt(chiTietDvkt.getMaPttt())
+                                        .maPtttQt(chiTietDvkt.getMaPtttQt())
+                                        .maVatTu(chiTietDvkt.getMaVatTu())
+                                        .maXangDau(chiTietDvkt.getMaXangDau())
+                                        .mucHuong(chiTietDvkt.getMucHuong())
+                                        .ngayKq(chiTietDvkt.getNgayKq())
+                                        .ngayThYl(chiTietDvkt.getNgayThYl())
+                                        .ngayYl(chiTietDvkt.getNgayYl())
+                                        .nguoiThucHien(chiTietDvkt.getNguoiThucHien())
+                                        .phamVi(chiTietDvkt.getPhamVi())
+                                        .ppVoCam(chiTietDvkt.getPpVoCam())
+                                        .soLuong(chiTietDvkt.getSoLuong())
+                                        .stt(chiTietDvkt.getStt())
+                                        .tBhtt(chiTietDvkt.getTBhtt())
+                                        .tBncct(chiTietDvkt.getTBncct())
+                                        .tBntt(chiTietDvkt.getTBntt())
+                                        .tNguonKhac(chiTietDvkt.getTNguonKhac())
+                                        .tNguonKhacCl(chiTietDvkt.getTNguonKhacCl())
+                                        .tNguonKhacNsnn(chiTietDvkt.getTNguonKhacNsnn())
+                                        .tNguonKhacVtnn(chiTietDvkt.getTNguonKhacVtnn())
+                                        .tNguonKhacVttn(chiTietDvkt.getTNguonKhacVttn())
+                                        .tTrantt(chiTietDvkt.getTTrantt())
+                                        .taiSuDung(chiTietDvkt.getTaiSuDung())
+                                        .tenDichVu(chiTietDvkt.getTenDichVu())
+                                        .tenVatTu(chiTietDvkt.getTenVatTu())
+                                        .thanhTienBh(chiTietDvkt.getThanhTienBh())
+                                        .thanhTienBv(chiTietDvkt.getThanhTienBv())
+                                        .ttThau(chiTietDvkt.getTtThau())
+                                        .tyleTtBh(chiTietDvkt.getTyleTtBh())
+                                        .tyleTtDv(chiTietDvkt.getTyleTtDv())
+                                        .vetThuongTp(chiTietDvkt.getVetThuongTp())
+                                        .viTriThDvkt(chiTietDvkt.getViTriThDvkt())
+                                        .admision_checkin_uuid(admissionCheckin.getId())
+                                        .build();
+
+                                admisionEquipmentList.add(admisionEquipment);
+                            }
+                        }
+                    }
                     break;
                 case "XML4":
+                    xml4 = xmlMapper.readValue(innerXml, Xml4.class);
+                    if (xml4 != null
+                            && xml4.getDanhSachChiTietCls() != null
+                            && xml4.getDanhSachChiTietCls().getChiTietCls() != null) {
+                        List<ChiTietCls> chiTietClsList = xml4.getDanhSachChiTietCls().getChiTietCls();
+
+                        if (chiTietClsList != null) {
+                            for (ChiTietCls chiTietDvkt : chiTietClsList) {
+                                admisionSubclinical = AdmisionSubclinical.builder()
+                                        .uuid(UUID.randomUUID().toString())
+                                        .stt(chiTietDvkt.getStt())
+                                        .maDichVu(chiTietDvkt.getMaDichVu())
+                                        .maChiSo(chiTietDvkt.getMaChiSo())
+                                        .tenChiSo(chiTietDvkt.getTenChiSo())
+                                        .giaTri(chiTietDvkt.getGiaTri())
+                                        .donViDo(chiTietDvkt.getDonViDo())
+                                        .moTa(chiTietDvkt.getMoTa())
+                                        .ketLuan(chiTietDvkt.getKetLuan())
+                                        .ngayKq(chiTietDvkt.getNgayKq())
+                                        .maBsDocKq(chiTietDvkt.getMaBsDocKq())
+                                        .duPhong(chiTietDvkt.getDuPhong())
+                                        .admision_checkin_uuid(admissionCheckin.getId())
+                                        .build();
+                                admisionSubclinicalsList.add(admisionSubclinical);
+
+                            }
+                        }
+                    }
                     break;
                 case "XML5":
                     break;
@@ -278,11 +369,10 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
             }
 
 
-
-            collector.collect(Tuple4.of(patient, admissionCheckin, admisionMedicalRecord, admisionMedList));
-
-
         }
+        logger1.info("patient : {}",patient);
+        logger1.info("admissionCheckin : {}",admissionCheckin);
+        collector.collect(Tuple6.of(patient, admissionCheckin, admisionMedicalRecord, admisionMedList, admisionEquipmentList, admisionSubclinicalsList));
     }
     @Override
     public void close() throws Exception {

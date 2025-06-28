@@ -1,3 +1,4 @@
+com\my_flink_job\dtos\iceberg\AdmisionSubclinical.class
 com\my_flink_job\servicve\MyIcebergSink.class
 com\my_flink_job\dtos\ChiTietThuoc.class
 com\my_flink_job\dtos\ChiTietDieuTriBenhLao.class
@@ -39,6 +40,7 @@ com\my_flink_job\dtos\Xml10.class
 com\my_flink_job\dtos\DanhSachChiTietDienBienBenh.class
 com\my_flink_job\dtos\GiamDinhHs.class
 com\my_flink_job\servicve\Xml1Extractor.class
+com\my_flink_job\dtos\iceberg\AdmisionSubclinical$AdmisionSubclinicalBuilder.class
 com\my_flink_job\dtos\iceberg\AdmissionBenefitLeave.class
 com\my_flink_job\dtos\DsachChiTietDieuTriBenhLao.class
 com\my_flink_job\dtos\ChiTietDvkt.class
@@ -58,6 +60,7 @@ com\my_flink_job\dtos\Xml5.class
 com\my_flink_job\dtos\Reference.class
 com\my_flink_job\dtos\Xml11.class
 com\my_flink_job\servicve\XmlParserFlatMap.class
+com\my_flink_job\dtos\iceberg\AdmisionEquipment.class
 com\my_flink_job\servicve\Xml9Extractor.class
 com\my_flink_job\dtos\Xml8.class
 com\my_flink_job\dtos\Xml14.class
@@ -72,6 +75,7 @@ com\my_flink_job\dtos\iceberg\Admision_Medical_Record.class
 com\my_flink_job\servicve\MinioService.class
 com\my_flink_job\servicve\Xml13Extractor.class
 com\my_flink_job\dtos\DanhSachChiTietCls.class
+com\my_flink_job\dtos\iceberg\AdmisionEquipment$AdmisionEquipmentBuilder.class
 com\my_flink_job\dtos\iceberg\Patient.class
 com\my_flink_job\servicve\Xml14Extractor.class
 com\my_flink_job\servicve\Xml7Extractor.class
