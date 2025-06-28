@@ -138,13 +138,20 @@ public class App {
     DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
 
     //Comvert Data theo XML
-    DataStream<Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>, List<AdmisionSubclinical>>> combinedStream = fullXmlDataStream.flatMap(new PatientCheckinExtractor());
+    DataStream<Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+            AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+            AdmissionAppointment, List<AdmissionTuberculosis>>>
+            combinedStream = fullXmlDataStream.flatMap(new PatientCheckinExtractor());
 
     DataStream<Patient> patientDataStream = combinedStream.map(t -> t.f0).filter(Objects::nonNull);
     DataStream<AdmissionCheckin> admissionCheckinDataStream = combinedStream.map(t -> t.f1);
     DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = combinedStream.map(t -> t.f2);
     DataStream<AdmisionMed> admisionMedDataStream = combinedStream
-            .flatMap((Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>, List<AdmisionSubclinical>> t, Collector<AdmisionMed> out) -> {
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t, Collector<AdmisionMed> out) -> {
               if (t.f3 != null) {
                 for (AdmisionMed med : t.f3) {
                   out.collect(med);
@@ -153,7 +160,10 @@ public class App {
             })
             .returns(AdmisionMed.class);
     DataStream<AdmisionEquipment> admisionEquipmentDataStream = combinedStream
-            .flatMap((Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>, List<AdmisionSubclinical>> t2, Collector<AdmisionEquipment> out2) -> {
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionEquipment> out2) -> {
               if (t2.f4 != null) {
                 for (AdmisionEquipment med : t2.f4) {
                   out2.collect(med);
@@ -163,7 +173,10 @@ public class App {
             .returns(AdmisionEquipment.class);
 
     DataStream<AdmisionSubclinical> admisionSubclinicalDataStream = combinedStream
-            .flatMap((Tuple6<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>, List<AdmisionSubclinical>> t2, Collector<AdmisionSubclinical> out2) -> {
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionSubclinical> out2) -> {
               if (t2.f5 != null) {
                 for (AdmisionSubclinical med : t2.f5) {
                   out2.collect(med);
@@ -171,6 +184,49 @@ public class App {
               }
             })
             .returns(AdmisionSubclinical.class);
+
+    DataStream<AdmisionClinical> admisionClinicalDataStream = combinedStream
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionClinical> out2) -> {
+              if (t2.f6 != null) {
+                for (AdmisionClinical med : t2.f6) {
+                  out2.collect(med);
+                }
+              }
+            })
+            .returns(AdmisionClinical.class);
+    DataStream<AdmisionDischarge> admisionDischargeDataStream = combinedStream.map(t -> t.f7);
+    DataStream<AdmisionBirthCertificate> admisionBirthCertificateDataStream = combinedStream
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionBirthCertificate> out2) -> {
+              if (t2.f6 != null) {
+                for (AdmisionBirthCertificate med : t2.f8) {
+                  out2.collect(med);
+                }
+              }
+            })
+            .returns(AdmisionBirthCertificate.class);
+    DataStream<AdmissionMaternityLeave> admissionMaternityLeaveDataStream = combinedStream.map(t -> t.f9);
+    DataStream<AdmissionBenefitLeave> admisionBenefitLeaveDataStream = combinedStream.map(t -> t.f10);
+    DataStream<AdmissionMedicalExam> admissionMedicalExamDataStream = combinedStream.map(t -> t.f11);
+    DataStream<AdmisionReferral> admisionReferralDataStream = combinedStream.map(t -> t.f12);
+    DataStream<AdmissionAppointment> admisionAppointmentDataStream = combinedStream.map(t -> t.f13);
+    DataStream<AdmissionTuberculosis> chiTietDieuTriBenhLaoDataStream = combinedStream
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionTuberculosis> out2) -> {
+              if (t2.f14 != null) {
+                for (AdmissionTuberculosis med : t2.f14) {
+                  out2.collect(med);
+                }
+              }
+            })
+            .returns(AdmissionTuberculosis.class);
 
 //    DataStream<Patient> patientDataStream = fullXmlDataStream.flatMap(new PatientExtractor(uuidCheckIn));
 //    DataStream<AdmissionCheckin> admissionCheckinDataStream = fullXmlDataStream.flatMap(new Xml1Extractor(uuidCheckIn));
@@ -182,16 +238,16 @@ public class App {
 
 //    DataStream<ChiTietDvkt> chiTietDvktStream = fullXmlDataStream.flatMap(new Xml3Extractor());
 //    DataStream<ChiTietCls> chiTietClsDataStream = fullXmlDataStream.flatMap(new Xml4Extractor());
-    DataStream<ChiTietDienBienBenh> admisionClinicalDataStream = fullXmlDataStream.flatMap(new Xml5Extractor());
-    DataStream<Xml7> admisionDischargeDataStream = fullXmlDataStream.flatMap(new Xml7Extractor());
-
-    DataStream<DulieuGiayChungSinh> admisionBirthCertificateDataStream = fullXmlDataStream.flatMap(new Xml9Extractor());
-    DataStream<Xml10> admissionMaternityLeaveDataStream = fullXmlDataStream.flatMap(new Xml10Extractor());
-    DataStream<Xml11> admisionBenefitLeaveDataStream = fullXmlDataStream.flatMap(new Xml11Extractor());
-    DataStream<Xml12> admissionMedicalExamDataStream = fullXmlDataStream.flatMap(new Xml12Extractor());
-    DataStream<Xml13> admisionReferralDataStream = fullXmlDataStream.flatMap(new Xml13Extractor());
-    DataStream<Xml14> admisionAppointmentDataStream = fullXmlDataStream.flatMap(new Xml14Extractor());
-    DataStream<ChiTietDieuTriBenhLao> chiTietDieuTriBenhLaoDataStream = fullXmlDataStream.flatMap(new Xml15Extractor());
+//    DataStream<ChiTietDienBienBenh> admisionClinicalDataStream = fullXmlDataStream.flatMap(new Xml5Extractor());
+//    DataStream<Xml7> admisionDischargeDataStream = fullXmlDataStream.flatMap(new Xml7Extractor());
+//
+//    DataStream<DulieuGiayChungSinh> admisionBirthCertificateDataStream = fullXmlDataStream.flatMap(new Xml9Extractor());
+//    DataStream<Xml10> admissionMaternityLeaveDataStream = fullXmlDataStream.flatMap(new Xml10Extractor());
+//    DataStream<Xml11> admisionBenefitLeaveDataStream = fullXmlDataStream.flatMap(new Xml11Extractor());
+//    DataStream<Xml12> admissionMedicalExamDataStream = fullXmlDataStream.flatMap(new Xml12Extractor());
+//    DataStream<Xml13> admisionReferralDataStream = fullXmlDataStream.flatMap(new Xml13Extractor());
+//    DataStream<Xml14> admisionAppointmentDataStream = fullXmlDataStream.flatMap(new Xml14Extractor());
+//    DataStream<ChiTietDieuTriBenhLao> chiTietDieuTriBenhLaoDataStream = fullXmlDataStream.flatMap(new Xml15Extractor());
 
     //Khởi tạo dữ liệu
     Table admissionCheckinTable = tableEnv.fromDataStream(
@@ -249,65 +305,107 @@ public class App {
             $("duPhong")
     );
     Table admisionClinicalTable = tableEnv.fromDataStream(
-            admisionClinicalDataStream, $("maLk"), $("stt"), $("dienBienLs"), $("giaiDoanBenh"), $("hoiChan"), $("phauThuat")
-            , $("thoiDiemDbls"), $("nguoiThucHien"), $("duPhong")
-
+            admisionClinicalDataStream,
+            $("uuid"),
+            $("maLk"),
+            $("stt"),
+            $("dienBienLs"),
+            $("giaiDoanBenh"),
+            $("hoiChan"),
+            $("phauThuat"),
+            $("thoiDiemDbls"),
+            $("nguoiThucHien"),
+            $("duPhong"),
+            $("admision_checkin_uuid")
     );
     Table admisionDischargeTable = tableEnv.fromDataStream(
-            admisionDischargeDataStream, $("maLk"), $("soLuuTru"), $("maYte"), $("maKhoaRv"), $("ngayVao"), $("ngayRa")
-            , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("thoiGianDinhChi"), $("tuoiThai"), $("chanDoanRv"), $("ppDieuTri"), $("ghiChu")
-            , $("maTtdv"), $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam")
-            , $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaiTruTuNgay"), $("ngoaiTruDenNgay"), $("duPhong")
+            admisionDischargeDataStream,
+            $("uuid"), $("soLuuTru"), $("maYte"), $("maKhoaRv"), $("ngayVao"),
+            $("ngayRa"), $("maDinhChiThai"), $("nguyennhanDinhchi"), $("thoigianDinhchi"),
+            $("tuoiThai"), $("chanDoanRv"), $("ppDieutri"), $("ghiChu"), $("maTtdv"),
+            $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam"),
+            $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaitruTungay"), $("ngoaitruDenngay"),
+            $("duPhong"), $("admision_checkin_uuid")
     );
+
 
     Table admisionBirthCertificateTable = tableEnv.fromDataStream(
-            admisionBirthCertificateDataStream, $("maLk"), $("maBhxhNnd"), $("maTheNnd"), $("hoTenNnd"), $("ngaySinhNnd"), $("maDanTocNnd")
-            , $("soCccdNnd"), $("ngayCapCccdNnd"), $("noiCapCccdNnd"), $("noiCuTruNnd"), $("maQuocTich"), $("maTinhCuTru"), $("maHuyenCuTru")
-            , $("maXaCuTru"), $("hoTenCha"), $("maTheTam"), $("hoTenCon"), $("gioiTinhCon"), $("soCon"), $("lanSinh"), $("soConSong")
-            , $("canNangCon"), $("ngaySinhCon"), $("noiSinhCon"), $("tinhTrangCon"), $("sinhConPhauThuat"), $("sinhConDuoi32Tuan"), $("ghiChu")
-            , $("nguoiDoDe"), $("nguoiGhiPhieu"), $("ngayCt"), $("so"), $("quyenSo"), $("maTtdv"), $("duPhong")
+            admisionBirthCertificateDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"), $("canNangCon"), $("duPhong"),
+            $("ghiChu"), $("gioiTinhCon"), $("hoTenCha"), $("hoTenCon"), $("hoTenNnd"), $("lanSinh"),
+            $("maBhxhNnd"), $("maDantocNnd"), $("maQuoctich"), $("maTheNnd"), $("maTheTam"), $("maTtdv"),
+            $("mahuyenCuTru"), $("matinhCuTru"), $("maxaCuTru"), $("ngayCt"), $("ngaySinhCon"), $("ngaycapCccdNnd"),
+            $("ngaysinhNnd"), $("nguoiDoDe"), $("nguoiGhiPhieu"), $("noiCuTruNnd"), $("noiSinhCon"),
+            $("noicapCccdNnd"), $("quyenSo"), $("sinhconDuoi32tuan"), $("sinhconPhauthuat"), $("so"),
+            $("soCccdNnd"), $("soCon"), $("soConSong"), $("stt"), $("tinhTrangCon"), $("admision_checkin_uuid")
     );
+
 
     Table admissionMaternityLeaveTable = tableEnv.fromDataStream(
-            admissionMaternityLeaveDataStream, $("maLk"), $("soSeri"), $("soCt"), $("soNgay"), $("donVi"), $("chanDoanRv"), $("tuNgay")
-            , $("denNgay"), $("maTtdv"), $("tenBs"), $("maBs"), $("ngayCt"), $("duPhong")
+            admissionMaternityLeaveDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"), $("maLk"), $("soSeri"),
+            $("soCt"), $("soNgay"), $("donVi"), $("chanDoanRv"), $("tuNgay"), $("denNgay"),
+            $("maTtdv"), $("tenBs"), $("maBs"), $("ngayCt"), $("duPhong"), $("admision_checkin_uuid")
     );
+
 
     Table admisionBenefitLeaveTable = tableEnv.fromDataStream(
-            admisionBenefitLeaveDataStream, $("maLk"), $("soCt"), $("soSeri"), $("soKcb"), $("donVi"), $("maBhxh"), $("maTheBhyt"), $("chanDoanRv"), $("ppDieuTri")
-            , $("maDinhChiThai"), $("nguyenNhanDinhChi"), $("tuoiThai"), $("soNgayNghi"), $("tuNgay"), $("denNgay"), $("hoTenCha"), $("hoTenMe"), $("maTtdv")
-            , $("maBs"), $("ngayCt"), $("maTheTam"), $("mauSo"), $("duPhong")
+            admisionBenefitLeaveDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"), $("chanDoanRv"), $("denNgay"),
+            $("donVi"), $("duPhong"), $("hoTenCha"), $("hoTenMe"), $("maBhxh"), $("maBs"),
+            $("maDinhChiThai"), $("maTheBhyt"), $("maTheTam"), $("maTtdv"), $("mauSo"),
+            $("ngayCt"), $("nguyennhanDinhchi"), $("ppDieutri"), $("soCt"), $("soKcb"),
+            $("soNgayNghi"), $("soSeri"), $("stt"), $("tuNgay"), $("tuoiThai"), $("admision_checkin_uuid")
     );
 
+
     Table admissionMedicalExamTable = tableEnv.fromDataStream(
-            admissionMedicalExamDataStream, $("nguoiChuTri"), $("chucVu"), $("ngayHop"), $("hoTen"), $("ngaySinh"), $("soCccd"), $("ngayCapCccd"), $("noiCapCccd"), $("diaChi"), $("maTinhCuTru")
-            , $("maHuyenCuTru"), $("maXaCuTru"), $("maBhxh"), $("maTheBhyt"), $("ngheNghiep"), $("dienThoai"), $("maDoiTuong"), $("khamGiamDinh"), $("soBienBan"), $("tyleTtctCu")
-            , $("dangHuongCheDo"), $("ngayChungTu"), $("soGiayGioiThieu"), $("ngayDeNghi"), $("maDonVi"), $("gioiThieuCua"), $("ketQuaKham"), $("soVanBanCanCu"), $("tyleTtctMoi"), $("tongTyleTtct"), $("dangKhuyettat")
-            , $("mucDoKhuyettat"), $("deNghi"), $("duocXacDinh"), $("duPhong")
+            admissionMedicalExamDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"), $("nguoiChuTri"), $("chucVu"),
+            $("ngayHop"), $("hoTen"), $("ngaySinh"), $("soCccd"), $("ngayCapCccd"), $("noiCapCccd"),
+            $("diaChi"), $("maTinhCuTru"), $("maHuyenCuTru"), $("maXaCuTru"), $("maBhxh"), $("maTheBhyt"),
+            $("ngheNghiep"), $("dienThoai"), $("maDoiTuong"), $("khamGiamDinh"), $("soBienBan"),
+            $("tyleTtctCu"), $("dangHuongCheDo"), $("ngayChungTu"), $("soGiayGioiThieu"), $("ngayDeNghi"),
+            $("maDonVi"), $("gioiThieuCua"), $("ketQuaKham"), $("soVanBanCanCu"), $("tyleTtctMoi"),
+            $("tongTyleTtct"), $("dangKhuyettat"), $("mucDoKhuyettat"), $("deNghi"), $("duocXacDinh"),
+            $("duPhong"), $("admision_checkin_uuid")
     );
+
 
 
     Table admisionReferralTable = tableEnv.fromDataStream(
-            admisionReferralDataStream, $("maLk"), $("soHoSo"), $("soChuyenTuyen"), $("giayChuyenTuyen"), $("maCskcb"), $("maNoiDi"), $("maNoiDen"), $("hoTen"), $("ngaySinh")
-            , $("gioiTinh"), $("maQuocTich"), $("maDanToc"), $("maNgheNghiep"), $("diaChi"), $("maTheBhyt"), $("gtTheDen"), $("ngayVao"), $("ngayVaoNoiTru")
-            , $("ngayRa"), $("dauHieuLs"), $("chanDoanRv"), $("qtBenhLy"), $("tomTatKq"), $("ppDieuTri"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct")
-            , $("tenDichVu"), $("tenThuoc"), $("ppDieuTriDuplicate"), $("maLoaiRv"), $("maLyDoCt"), $("huongDieuTri"), $("phuongTienVc"), $("hoTenNguoiHt"), $("chucDanhNguoiHt")
-            , $("maBacSi"), $("maTtdv"), $("duPhong")
+            admisionReferralDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"), $("chanDoanRv"), $("chucdanhNguoiHt"), $("dauHieuLs"),
+            $("diaChi"), $("duPhong"), $("giayChuyenTuyen"), $("gioiTinh"), $("gtTheDen"), $("hoTen"), $("hotenNguoiHt"),
+            $("huongDieuTri"), $("maBacSi"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maCskcb"), $("maDantoc"),
+            $("maLoaiRv"), $("maLydoCt"), $("maNgheNghiep"), $("maNoiDen"), $("maNoiDi"), $("maQuoctich"), $("maTheBhyt"),
+            $("maTtdv"), $("ngayRa"), $("ngaySinh"), $("ngayVao"), $("ngayVaoNoiTru"), $("phuongtienVc"), $("ppDieuTri"),
+            $("qtBenhly"), $("soChuyentuyen"), $("soHoso"), $("stt"), $("tomtatKq"), $("admision_checkin_uuid")
     );
+
 
     Table admisionAppointmentTable = tableEnv.fromDataStream(
-            admisionAppointmentDataStream, $("maLk"), $("soGiayHenKl"), $("maCskcb"), $("hoTen"), $("ngaySinh"), $("gioiTinh"), $("diaChi"), $("maTheBhyt"), $("gtTheDen")
-            , $("ngayVao"), $("ngayVaoNoiTru"), $("ngayRa")
-            , $("ngayHenKl"), $("chanDoanRv"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"), $("maDoiTuongKcb")
-            , $("maBacSi"), $("maTtdv"), $("ngayCt")
-            , $("duPhong")
+            admisionAppointmentDataStream,
+            $("uuid"), $("createdAt"), $("createdBy"), $("updatedAt"),
+            $("chanDoanRv"), $("diaChi"), $("duPhong"), $("gioiTinh"), $("gtTheDen"),
+            $("hoTen"), $("maBacSi"), $("maBenhChinh"), $("maBenhKt"), $("maBenhYhct"),
+            $("maCskcb"), $("maDoiTuongKcb"), $("maTheBhyt"), $("maTtdv"),
+            $("ngayCt"), $("ngayHenKl"), $("ngayRa"), $("ngaySinh"),
+            $("ngayVao"), $("ngayVaoNoiTru"), $("soGiayHenKl"),
+            $("stt"), $("admision_checkin_uuid")
     );
 
+
     Table admissionTuberculosisTable = tableEnv.fromDataStream(
-            chiTietDieuTriBenhLaoDataStream, $("maLk"), $("stt"), $("maBn"), $("hoTen"), $("soCccd"), $("phanLoaiLaoViTri"), $("phanLoaiLaoTs")
-            , $("phanLoaiLaoHiv"), $("phanLoaiLaoVk"), $("phanLoaiLaoKt"), $("loaiDtriLao"), $("ngayBdDtriLao"), $("phacDoDtriLao"), $("ngayKtDtriLao"), $("ketQuaDtriLao")
-            , $("maCskcb"), $("ngayKdHiv"), $("bddtArv"), $("ngayBatDauDtCtx"), $("duPhong")
+            chiTietDieuTriBenhLaoDataStream,
+            $("uuid"), $("maLk"), $("createdAt"), $("createdBy"), $("updatedAt"), $("stt"),
+            $("maBn"), $("hoTen"), $("soCccd"),
+            $("phanLoaiLaoViTri"), $("phanLoaiLaoTs"), $("phanLoaiLaoHiv"), $("phanLoaiLaoVk"), $("phanLoaiLaoKt"),
+            $("loaiDtriLao"), $("ngayBdDtriLao"), $("phacDoDtriLao"), $("ngayKtDtriLao"), $("ketQuaDtriLao"),
+            $("maCskcb"), $("ngayKdHiv"), $("bddtArv"), $("ngayBatDauDtCtx"),
+            $("duPhong"), $("admision_checkin_uuid")
     );
+
 
     // Tạo view tạm cho Table
     tableEnv.createTemporaryView("admision_checkin_view", admissionCheckinTable);

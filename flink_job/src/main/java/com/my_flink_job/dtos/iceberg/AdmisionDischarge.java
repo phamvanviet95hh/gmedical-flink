@@ -6,37 +6,39 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class AdmissionBenefitLeave {
+public class AdmisionDischarge {
     private String uuid;
     private String createdAt;
     private String createdBy;
     private String updatedAt;
     private String chanDoanRv;
-    private String denNgay;
-    private String donVi;
     private String duPhong;
+    private String ghiChu;
     private String hoTenCha;
     private String hoTenMe;
-    private String maBhxh;
     private String maBs;
+    private String maCha;
     private String maDinhChiThai;
-    private String maTheBhyt;
+    private String maKhoaRv;
+    private String maMe;
     private String maTheTam;
     private String maTtdv;
-    private String mauSo;
+    private String maYte;
     private String ngayCt;
+    private String ngayRa;
+    private String ngayVao;
+    private String ngoaitruDenngay;
+    private String ngoaitruTungay;
     private String nguyennhanDinhchi;
     private String ppDieutri;
-    private String soCt;
-    private String soKcb;
+    private String soLuuTru;
     private String soNgayNghi;
-    private String soSeri;
     private String stt;
-    private String tuNgay;
+    private String tenBs;
+    private String thoigianDinhchi;
     private String tuoiThai;
     private String admision_checkin_uuid;
-
 }
