@@ -49,7 +49,7 @@ public class TableDtos {
             "  'write.format.default' = 'parquet'\n" +
             ")";
     public static String admisionSubclinical = "CREATE TABLE IF NOT EXISTS db_3179.admision_subclinical(" +
-            " uuid String, stt String, maDichVu String, maDichSo String, tenChiSo String, giaTri String, donViDo String, moTa String, ketLuan String" +
+            " uuid String, stt String, maDichVu String, maChiSo String, tenChiSo String, giaTri String, donViDo String, moTa String, ketLuan String" +
             ", ngayKq String, maBsDocKq String, duPhong String, admision_checkin_uuid String, PRIMARY KEY (uuid) NOT ENFORCED)" +
             " WITH (" +
             " 'write.metadata.delete-after-commit.enabled' = 'true'," +

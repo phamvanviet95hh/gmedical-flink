@@ -375,6 +375,7 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<GiamDinhHs, Tup
                             for (ChiTietDienBienBenh chiTietDienBienBenh : chiTietDienBienBenhList) {
                                 admisionClinical = AdmisionClinical.builder()
                                         .uuid(UUID.randomUUID().toString())
+                                        .maLk(chiTietDienBienBenh.getMaLk())
                                         .createdAt(LocalDateTime.now().toString())
                                         .createdBy("system")
                                         .updatedAt(LocalDateTime.now().toString())

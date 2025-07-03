@@ -59,10 +59,9 @@ public class App {
     App.minioService = minioService;
 
   }
-  public static int count = 1;
+
   private static final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-  private static String pathMinio = null;
   private static final StreamTableEnvironment tableEnv = StreamTableEnvironment.create(
           env,
           EnvironmentSettings.newInstance().inStreamingMode().build());
@@ -197,7 +196,19 @@ public class App {
               }
             })
             .returns(AdmisionClinical.class);
-    DataStream<AdmisionDischarge> admisionDischargeDataStream = combinedStream.map(t -> t.f7);
+
+    DataStream<AdmisionDischarge> admisionDischargeDataStream = combinedStream
+            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+              List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+              AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+              AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionDischarge> out2) -> {
+      if (t2.f7 != null) {
+        out2.collect(t2.f7);
+      }
+    })
+            .returns(AdmisionDischarge.class);
+
+
     DataStream<AdmisionBirthCertificate> admisionBirthCertificateDataStream = combinedStream
             .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
@@ -210,11 +221,61 @@ public class App {
               }
             })
             .returns(AdmisionBirthCertificate.class);
-    DataStream<AdmissionMaternityLeave> admissionMaternityLeaveDataStream = combinedStream.map(t -> t.f9);
-    DataStream<AdmissionBenefitLeave> admisionBenefitLeaveDataStream = combinedStream.map(t -> t.f10);
-    DataStream<AdmissionMedicalExam> admissionMedicalExamDataStream = combinedStream.map(t -> t.f11);
-    DataStream<AdmisionReferral> admisionReferralDataStream = combinedStream.map(t -> t.f12);
-    DataStream<AdmissionAppointment> admisionAppointmentDataStream = combinedStream.map(t -> t.f13);
+
+
+    DataStream<AdmissionMaternityLeave> admissionMaternityLeaveDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+            AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+            AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionMaternityLeave> out2) -> {
+      if (t2.f9 != null) {
+          out2.collect(t2.f9);
+      }
+    })
+            .returns(AdmissionMaternityLeave.class);
+
+
+    DataStream<AdmissionBenefitLeave> admisionBenefitLeaveDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionBenefitLeave> out2) -> {
+              if (t2.f10 != null) {
+                out2.collect(t2.f10);
+              }
+            })
+            .returns(AdmissionBenefitLeave.class);
+    DataStream<AdmissionMedicalExam> admissionMedicalExamDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionMedicalExam> out2) -> {
+              if (t2.f11 != null) {
+                out2.collect(t2.f11);
+              }
+            })
+            .returns(AdmissionMedicalExam.class);
+
+
+    DataStream<AdmisionReferral> admisionReferralDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionReferral> out2) -> {
+              if (t2.f12 != null) {
+                out2.collect(t2.f12);
+              }
+            })
+            .returns(AdmisionReferral.class);
+
+
+    DataStream<AdmissionAppointment> admisionAppointmentDataStream =combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionAppointment> out2) -> {
+              if (t2.f13 != null) {
+                out2.collect(t2.f13);
+              }
+            })
+            .returns(AdmissionAppointment.class);
+
+
     DataStream<AdmissionTuberculosis> chiTietDieuTriBenhLaoDataStream = combinedStream
             .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
@@ -302,7 +363,7 @@ public class App {
     Table admisionSubclinicalTable = tableEnv.fromDataStream(
             admisionSubclinicalDataStream,$("uuid"), $("stt"), $("maDichVu"), $("maChiSo"), $("tenChiSo"),
             $("giaTri"), $("donViDo"), $("moTa"), $("ketLuan"), $("ngayKq"), $("maBsDocKq"),
-            $("duPhong")
+            $("duPhong"), $("admision_checkin_uuid")
     );
     Table admisionClinicalTable = tableEnv.fromDataStream(
             admisionClinicalDataStream,

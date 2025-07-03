@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class AdmisionClinical {
 
     private String uuid;
+    private String maLk;
     private String createdAt;
     private String createdBy;
     private String updatedAt;
