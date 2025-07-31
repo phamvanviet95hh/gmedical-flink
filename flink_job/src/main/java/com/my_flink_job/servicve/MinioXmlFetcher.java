@@ -1,5 +1,7 @@
 package com.my_flink_job.servicve;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.my_flink_job.dtos.FileContentDto;
 import io.minio.GetObjectArgs;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
@@ -20,8 +22,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-public class MinioXmlFetcher extends RichFlatMapFunction<String, String> {
+public class MinioXmlFetcher extends RichFlatMapFunction<String, FileContentDto> {
     static Logger logger1 = LoggerFactory.getLogger(MinioXmlFetcher.class);
+    ObjectMapper mapper = new ObjectMapper();
     private transient S3Client minioClient;
 
     private S3Client s3Client() {
@@ -54,7 +57,7 @@ public class MinioXmlFetcher extends RichFlatMapFunction<String, String> {
     }
 
     @Override
-    public void flatMap(String objectKey, Collector<String> out) {
+    public void flatMap(String objectKey, Collector<FileContentDto> out) {
         try {
             JSONObject json = new JSONObject(objectKey);
             String key = json.optString("Key", null);
@@ -64,6 +67,8 @@ public class MinioXmlFetcher extends RichFlatMapFunction<String, String> {
             }
 
             String objectPath = key.replace("gmedical.lake/", "");
+            String path = "gmedical.lake/"+ objectPath;
+            String fileName = path.substring(path.lastIndexOf("/") + 1);
             logger1.info("Key Minio: {}", objectPath);
 
             if (!objectPath.contains("3176")) {
@@ -78,7 +83,13 @@ public class MinioXmlFetcher extends RichFlatMapFunction<String, String> {
                     .build());
 
             String result = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            out.collect(result);
+
+
+            out.collect(FileContentDto.builder()
+                    .pathFile(path)
+                    .nameFile(fileName)
+                    .content(result)
+                    .build());
 
         } catch (Exception e) {
             logger1.error("Failed to process objectKey: {}", objectKey, e);

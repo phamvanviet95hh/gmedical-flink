@@ -110,6 +110,7 @@ public class App {
     tableEnv.executeSql(TableDtos.admisionAppointment);
     tableEnv.executeSql(TableDtos.admissionTuberculosis);
     tableEnv.executeSql(TableDtos.patient);
+    tableEnv.executeSql(TableDtos.processed_files);
 
     StatementSet stmt = tableEnv.createStatementSet();
 
@@ -133,24 +134,24 @@ public class App {
     String uuidCheckIn = UUID.randomUUID().toString();
     logger1.info("uuidCheckIn: -----------------------------------------------------------------------> {}",uuidCheckIn);
     // map Kafka message (đường dẫn) -> FullXmlData object (chứa nhiều list con)
-    DataStream<String> rawXmlString = text.flatMap(new MinioXmlFetcher());
-    DataStream<GiamDinhHs> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
+    DataStream<FileContentDto> rawXmlString = text.flatMap(new MinioXmlFetcher());
+    DataStream<FileContentGdDto> fullXmlDataStream = rawXmlString.flatMap(new FullXmlParser());
 
     //Comvert Data theo XML
-    DataStream<Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+    DataStream<Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
             List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
             AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-            AdmissionAppointment, List<AdmissionTuberculosis>>>
+            AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles>>  combinedStream;
             combinedStream = fullXmlDataStream.flatMap(new PatientCheckinExtractor());
 
     DataStream<Patient> patientDataStream = combinedStream.map(t -> t.f0).filter(Objects::nonNull);
     DataStream<AdmissionCheckin> admissionCheckinDataStream = combinedStream.map(t -> t.f1);
     DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = combinedStream.map(t -> t.f2);
     DataStream<AdmisionMed> admisionMedDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t, Collector<AdmisionMed> out) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t, Collector<AdmisionMed> out) -> {
               if (t.f3 != null) {
                 for (AdmisionMed med : t.f3) {
                   out.collect(med);
@@ -159,10 +160,10 @@ public class App {
             })
             .returns(AdmisionMed.class);
     DataStream<AdmisionEquipment> admisionEquipmentDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionEquipment> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionEquipment> out2) -> {
               if (t2.f4 != null) {
                 for (AdmisionEquipment med : t2.f4) {
                   out2.collect(med);
@@ -172,10 +173,10 @@ public class App {
             .returns(AdmisionEquipment.class);
 
     DataStream<AdmisionSubclinical> admisionSubclinicalDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionSubclinical> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionSubclinical> out2) -> {
               if (t2.f5 != null) {
                 for (AdmisionSubclinical med : t2.f5) {
                   out2.collect(med);
@@ -185,10 +186,10 @@ public class App {
             .returns(AdmisionSubclinical.class);
 
     DataStream<AdmisionClinical> admisionClinicalDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionClinical> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionClinical> out2) -> {
               if (t2.f6 != null) {
                 for (AdmisionClinical med : t2.f6) {
                   out2.collect(med);
@@ -198,10 +199,10 @@ public class App {
             .returns(AdmisionClinical.class);
 
     DataStream<AdmisionDischarge> admisionDischargeDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
-              List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
-              AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-              AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionDischarge> out2) -> {
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionDischarge> out2) -> {
       if (t2.f7 != null) {
         out2.collect(t2.f7);
       }
@@ -210,10 +211,10 @@ public class App {
 
 
     DataStream<AdmisionBirthCertificate> admisionBirthCertificateDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionBirthCertificate> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionBirthCertificate> out2) -> {
               if (t2.f6 != null) {
                 for (AdmisionBirthCertificate med : t2.f8) {
                   out2.collect(med);
@@ -223,10 +224,10 @@ public class App {
             .returns(AdmisionBirthCertificate.class);
 
 
-    DataStream<AdmissionMaternityLeave> admissionMaternityLeaveDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
-            List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
-            AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-            AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionMaternityLeave> out2) -> {
+    DataStream<AdmissionMaternityLeave> admissionMaternityLeaveDataStream = combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmissionMaternityLeave> out2) -> {
       if (t2.f9 != null) {
           out2.collect(t2.f9);
       }
@@ -234,19 +235,19 @@ public class App {
             .returns(AdmissionMaternityLeave.class);
 
 
-    DataStream<AdmissionBenefitLeave> admisionBenefitLeaveDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+    DataStream<AdmissionBenefitLeave> admisionBenefitLeaveDataStream = combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionBenefitLeave> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmissionBenefitLeave> out2) -> {
               if (t2.f10 != null) {
                 out2.collect(t2.f10);
               }
             })
             .returns(AdmissionBenefitLeave.class);
-    DataStream<AdmissionMedicalExam> admissionMedicalExamDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+    DataStream<AdmissionMedicalExam> admissionMedicalExamDataStream = combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionMedicalExam> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmissionMedicalExam> out2) -> {
               if (t2.f11 != null) {
                 out2.collect(t2.f11);
               }
@@ -254,10 +255,10 @@ public class App {
             .returns(AdmissionMedicalExam.class);
 
 
-    DataStream<AdmisionReferral> admisionReferralDataStream = combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+    DataStream<AdmisionReferral> admisionReferralDataStream = combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmisionReferral> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmisionReferral> out2) -> {
               if (t2.f12 != null) {
                 out2.collect(t2.f12);
               }
@@ -265,10 +266,10 @@ public class App {
             .returns(AdmisionReferral.class);
 
 
-    DataStream<AdmissionAppointment> admisionAppointmentDataStream =combinedStream.flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+    DataStream<AdmissionAppointment> admisionAppointmentDataStream =combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionAppointment> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmissionAppointment> out2) -> {
               if (t2.f13 != null) {
                 out2.collect(t2.f13);
               }
@@ -277,10 +278,10 @@ public class App {
 
 
     DataStream<AdmissionTuberculosis> chiTietDieuTriBenhLaoDataStream = combinedStream
-            .flatMap((Tuple15<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+            .flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
                     List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
                     AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
-                    AdmissionAppointment, List<AdmissionTuberculosis>> t2, Collector<AdmissionTuberculosis> out2) -> {
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<AdmissionTuberculosis> out2) -> {
               if (t2.f14 != null) {
                 for (AdmissionTuberculosis med : t2.f14) {
                   out2.collect(med);
@@ -289,26 +290,16 @@ public class App {
             })
             .returns(AdmissionTuberculosis.class);
 
-//    DataStream<Patient> patientDataStream = fullXmlDataStream.flatMap(new PatientExtractor(uuidCheckIn));
-//    DataStream<AdmissionCheckin> admissionCheckinDataStream = fullXmlDataStream.flatMap(new Xml1Extractor(uuidCheckIn));
+    DataStream<ProcessFiles> processFilesDataStream =combinedStream.flatMap((Tuple16<Patient, AdmissionCheckin, Admision_Medical_Record, List<AdmisionMed>, List<AdmisionEquipment>,
+                    List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
+                    AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
+                    AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles> t2, Collector<ProcessFiles> out2) -> {
+              if (t2.f15 != null) {
+                out2.collect(t2.f15);
+              }
+            })
+            .returns(ProcessFiles.class);
 
-//     DataStream<Admision_Medical_Record> admisionGmedicalRecordDataStream = fullXmlDataStream.flatMap(new Xml8Extractor());
-
-
-//    DataStream<ChiTietThuoc> admisionMedDataStream = fullXmlDataStream.flatMap(new Xml2Extractor());
-
-//    DataStream<ChiTietDvkt> chiTietDvktStream = fullXmlDataStream.flatMap(new Xml3Extractor());
-//    DataStream<ChiTietCls> chiTietClsDataStream = fullXmlDataStream.flatMap(new Xml4Extractor());
-//    DataStream<ChiTietDienBienBenh> admisionClinicalDataStream = fullXmlDataStream.flatMap(new Xml5Extractor());
-//    DataStream<Xml7> admisionDischargeDataStream = fullXmlDataStream.flatMap(new Xml7Extractor());
-//
-//    DataStream<DulieuGiayChungSinh> admisionBirthCertificateDataStream = fullXmlDataStream.flatMap(new Xml9Extractor());
-//    DataStream<Xml10> admissionMaternityLeaveDataStream = fullXmlDataStream.flatMap(new Xml10Extractor());
-//    DataStream<Xml11> admisionBenefitLeaveDataStream = fullXmlDataStream.flatMap(new Xml11Extractor());
-//    DataStream<Xml12> admissionMedicalExamDataStream = fullXmlDataStream.flatMap(new Xml12Extractor());
-//    DataStream<Xml13> admisionReferralDataStream = fullXmlDataStream.flatMap(new Xml13Extractor());
-//    DataStream<Xml14> admisionAppointmentDataStream = fullXmlDataStream.flatMap(new Xml14Extractor());
-//    DataStream<ChiTietDieuTriBenhLao> chiTietDieuTriBenhLaoDataStream = fullXmlDataStream.flatMap(new Xml15Extractor());
 
     //Khởi tạo dữ liệu
     Table admissionCheckinTable = tableEnv.fromDataStream(
@@ -467,6 +458,13 @@ public class App {
             $("duPhong"), $("admision_checkin_uuid")
     );
 
+    Table processFile = tableEnv.fromDataStream(
+            processFilesDataStream,
+            $("uuid"), $("file_name"), $("unit_name"), $("directory"), $("date_of_receipt_of_file"), $("processed_at"),
+            $("etl_status"), $("gmed_status"), $("ma_lk"),
+            $("created_at"), $("updated_at")
+    );
+
 
     // Tạo view tạm cho Table
     tableEnv.createTemporaryView("admision_checkin_view", admissionCheckinTable);
@@ -483,6 +481,7 @@ public class App {
     tableEnv.createTemporaryView("admision_referral_view", admisionReferralTable);
     tableEnv.createTemporaryView("admision_appointment_view", admisionAppointmentTable);
     tableEnv.createTemporaryView("admission_tuberculosis_view", admissionTuberculosisTable);
+    tableEnv.createTemporaryView("process_file_view", processFile);
 
     App.flinkQuery(stmt);
     stmt.execute();
@@ -504,6 +503,7 @@ public class App {
     stmt.addInsertSql("INSERT INTO db_3179.admision_referral SELECT * FROM admision_referral_view");
     stmt.addInsertSql("INSERT INTO db_3179.admision_appointment SELECT * FROM admision_appointment_view");
     stmt.addInsertSql("INSERT INTO db_3179.admission_tuberculosis SELECT * FROM admission_tuberculosis_view");
+    stmt.addInsertSql("INSERT INTO db_3179.processed_files SELECT * FROM process_file_view");
   }
 
 

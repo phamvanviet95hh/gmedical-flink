@@ -224,4 +224,16 @@ public class TableDtos {
             " 'format-version' = '2'," +
             " 'write.format.default' = 'parquet')";
 
+    public static String processed_files ="CREATE TABLE IF NOT EXISTS db_3179.processed_files(" +
+            " uuid String, file_name String, unit_name String, directory String, " +
+            " date_of_receipt_of_file String, processed_at String, etl_status String, " +
+            " gmed_status String, ma_lk String, " +
+            " created_at String, updated_at String, PRIMARY KEY (uuid) NOT ENFORCED)" +
+            " WITH ('write.metadata.delete-after-commit.enabled' = 'true'," +
+            " 'write.metadata.previous-versions-max' = '1'," +
+            " 'write.metadata.auto-merge.enabled' = 'false'," +
+            " 'write.parquet.compression-codec' = 'uncompressed'," +
+            " 'format-version' = '2'," +
+            " 'write.format.default' = 'parquet')";
+
 }
