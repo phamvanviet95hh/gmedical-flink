@@ -46,28 +46,28 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<FileContentGdDt
             List<AdmisionSubclinical>, List<AdmisionClinical>, AdmisionDischarge, List<AdmisionBirthCertificate>,
             AdmissionMaternityLeave, AdmissionBenefitLeave, AdmissionMedicalExam, AdmisionReferral,
             AdmissionAppointment, List<AdmissionTuberculosis>, ProcessFiles>> collector) throws Exception {
+        AdmissionCheckin admissionCheckin =null;
+        Admision_Medical_Record admisionMedicalRecord = null;
+        Patient patient = null;
+        AdmisionMed admisionMed = null;
+        AdmisionEquipment admisionEquipment = null;
+        List<AdmisionMed> admisionMedList = new ArrayList<>();
+        List<AdmisionEquipment> admisionEquipmentList = new ArrayList<>();
+        AdmisionSubclinical admisionSubclinical =null;
+        List<AdmisionSubclinical> admisionSubclinicalsList = new ArrayList<>();
+        AdmisionClinical admisionClinical =null;
+        List<AdmisionClinical> admisionClinicalsList = new ArrayList<>();
+        AdmisionDischarge admisionDischarge = null;
+        AdmisionBirthCertificate admisionBirthCertificate = null;
+        List<AdmisionBirthCertificate> admisionBirthCertificateList = new ArrayList<>();
+        AdmissionMaternityLeave admissionMaternityLeave = null;
+        AdmissionBenefitLeave admissionBenefitLeave = null;
+        AdmissionMedicalExam admissionMedicalExam = null;
+        AdmisionReferral admisionReferral = null;
+        AdmissionAppointment admissionAppointment = null;
+        AdmissionTuberculosis admissionTuberculosis = null;
+        List<AdmissionTuberculosis> admissionTuberculosisList = new ArrayList<>();
         try{
-            AdmissionCheckin admissionCheckin =null;
-            Admision_Medical_Record admisionMedicalRecord = null;
-            Patient patient = null;
-            AdmisionMed admisionMed = null;
-            AdmisionEquipment admisionEquipment = null;
-            List<AdmisionMed> admisionMedList = new ArrayList<>();
-            List<AdmisionEquipment> admisionEquipmentList = new ArrayList<>();
-            AdmisionSubclinical admisionSubclinical =null;
-            List<AdmisionSubclinical> admisionSubclinicalsList = new ArrayList<>();
-            AdmisionClinical admisionClinical =null;
-            List<AdmisionClinical> admisionClinicalsList = new ArrayList<>();
-            AdmisionDischarge admisionDischarge = null;
-            AdmisionBirthCertificate admisionBirthCertificate = null;
-            List<AdmisionBirthCertificate> admisionBirthCertificateList = new ArrayList<>();
-            AdmissionMaternityLeave admissionMaternityLeave = null;
-            AdmissionBenefitLeave admissionBenefitLeave = null;
-            AdmissionMedicalExam admissionMedicalExam = null;
-            AdmisionReferral admisionReferral = null;
-            AdmissionAppointment admissionAppointment = null;
-            AdmissionTuberculosis admissionTuberculosis = null;
-            List<AdmissionTuberculosis> admissionTuberculosisList = new ArrayList<>();
             Xml1 xml1 = null;
             Xml2 xml2 = null;
             Xml3 xml3 = null;
@@ -741,16 +741,30 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<FileContentGdDt
                     .date_of_receipt_of_file(LocalDateTime.now().toString())
                     .ma_lk(admissionCheckin.getMaLk())
                     .etl_status("etl_completed")
-                    .gmed_status(null)
+                    .gmed_status("success")
                     .build();
             collector.collect(Tuple16.of(patient, admissionCheckin, admisionMedicalRecord, admisionMedList, admisionEquipmentList,
                     admisionSubclinicalsList, admisionClinicalsList, admisionDischarge, admisionBirthCertificateList, admissionMaternityLeave,
                     admissionBenefitLeave, admissionMedicalExam, admisionReferral, admissionAppointment, admissionTuberculosisList, processFiles ));
 
         }catch (Exception e) {
+
+            ProcessFiles processFiles = ProcessFiles.builder()
+                    .uuid(UUID.randomUUID().toString())
+                    .created_at(LocalDateTime.now().toString())
+                    .updated_at(LocalDateTime.now().toString())
+                    .file_name(giamDinhHs.getFileName())
+                    .directory(giamDinhHs.getPathFile())
+                    .processed_at(LocalDateTime.now().toString())
+                    .unit_name(admissionCheckin.getMaCskb() == null ? "fail" : admissionCheckin.getMaCskb())
+                    .date_of_receipt_of_file(LocalDateTime.now().toString())
+                    .ma_lk(admissionCheckin.getMaLk() == null ? "fail" : admissionCheckin.getMaLk())
+                    .etl_status("etl_completed")
+                    .gmed_status("fail")
+                    .build();
             collector.collect(Tuple16.of(null, null, null, null, null,
                     null, null, null, null, null,
-                    null, null, null, null, null, null ));
+                    null, null, null, null, null, processFiles));
             logger1.error("Error processing admission data: ", e);
             throw new RuntimeException("Error processing admission data", e);
         }
