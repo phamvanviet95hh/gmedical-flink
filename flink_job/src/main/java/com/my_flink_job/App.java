@@ -303,7 +303,7 @@ public class App {
 
     //Khởi tạo dữ liệu
     Table admissionCheckinTable = tableEnv.fromDataStream(
-            admissionCheckinDataStream,$("id"), $("maLk"), $("maBn"), $("maLoaiRv"), $("ketQuaDtri"), $("lyDoVv"), $("lyDoVnt")
+            admissionCheckinDataStream,$("id"), $("maBn"), $("maLoaiRv"), $("ketQuaDtri"),$("maLk"), $("lyDoVv"), $("lyDoVnt")
             , $("canNang"), $("gtTheTu"), $("gtTheDen"), $("duPhong"), $("maNoiDen"), $("maNoiDi")
             , $("ngayVao"), $("ngayRa"), $("maTheBhyt"), $("maLyDoVnt"), $("maHsba"), $("ngayVaoNoiTru")
             , $("stt"), $("maCskb"), $("maTaiNan"), $("namNamLienTuc"), $("maDkbd"), $("ngayMienCct")

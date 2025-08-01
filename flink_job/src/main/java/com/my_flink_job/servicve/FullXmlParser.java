@@ -20,15 +20,18 @@ public class FullXmlParser extends RichFlatMapFunction<FileContentDto, FileConte
 
     @Override
     public void flatMap(FileContentDto json, Collector<FileContentGdDto> out) throws Exception {
-
+        String data = null;
+        String pathFile = null;
+        String nameFile = null;
+        GiamDinhHs giamDinhHs = null;
+        // Bước 2: lấy nội dung XML từ content
+        data = json.getContent();
+        pathFile = json.getPathFile();
+        nameFile = json.getNameFile();
         try {
-            // Bước 2: lấy nội dung XML từ content
-            String data = json.getContent();
-            String pathFile = json.getPathFile();
-            String nameFile = json.getNameFile();
 
             // Bước 3: parse XML sang GiamDinhHs
-            GiamDinhHs giamDinhHs = xmlMapper.readValue(data, GiamDinhHs.class);
+            giamDinhHs = xmlMapper.readValue(data, GiamDinhHs.class);
             // Bước 4: emit kết quả
             out.collect(FileContentGdDto.builder()
                     .fileName(nameFile)
@@ -37,7 +40,12 @@ public class FullXmlParser extends RichFlatMapFunction<FileContentDto, FileConte
                     .build());
 
         } catch (Exception e) {
-            System.err.println("Lỗi khi parse chuỗi JSON: " + json);
+//            System.err.println("Lỗi khi parse chuỗi JSON: " + json.getContent());
+            out.collect(FileContentGdDto.builder()
+                    .fileName(nameFile)
+                    .pathFile(pathFile)
+                    .content(null)
+                    .build());
             e.printStackTrace(); // log lỗi đầy đủ
         }
 
