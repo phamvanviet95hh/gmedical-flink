@@ -8,13 +8,15 @@ public class TableDtos {
             " ngayRa String, maTheBhyt String, maLyDoVnt String, maHsba String, ngayVaoNoiTru String, " +
             " stt String, maCskb String, maTaiNan String, namNamLienTuc String, maDkbd String , ngayMienCct String, " +
             " maDoituongKcb String, createdAt String, updatedAt String, createdBy String, updatedBy String, patient_id STRING, PRIMARY KEY (id) NOT ENFORCED) " +
-            "  WITH (\n" +
-            "  'write.metadata.delete-after-commit.enabled' = 'true',\n" +
-            "  'write.metadata.previous-versions-max' = '1',\n" +
-            "  'write.metadata.auto-merge.enabled' = 'false',\n" +
-            "  'write.parquet.compression-codec' = 'uncompressed',\n" +
+            " PARTITIONED BY (maCskb, ngayVao) WITH (\n" +
+            "  'connector' = 'iceberg',\n" +
             "  'format-version' = '2',\n" +
-            "  'write.format.default' = 'parquet', 'connector' = 'print'\n" +
+            "  'write.format.default' = 'parquet',\n" +
+            "  'write.parquet.compression-codec' = 'zstd',\n" +
+            "  'write.ordering' = 'maCskb, patient_id, id',\n" +
+            "  'write.metadata.auto-merge.enabled' = 'false',\n" +
+            "  'write.metadata.delete-after-commit.enabled' = 'true',\n" +
+            "  'write.metadata.previous-versions-max' = '1'\n" +
             ")";
     public static String admisionMed ="CREATE TABLE IF NOT EXISTS db_3179.admision_med(" +
             " uuid String, createdAt String, updatedAt String, stt STRING, maThuoc STRING, maPpCheBien STRING" +

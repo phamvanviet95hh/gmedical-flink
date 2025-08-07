@@ -18,6 +18,7 @@ public class GiamDinhHs {
     @JacksonXmlProperty(localName = "CHUKYDONVI")
     public String chuKyDv;
 
+
     @JacksonXmlProperty(localName = "Signature")
     public Signatures signatures;
 
