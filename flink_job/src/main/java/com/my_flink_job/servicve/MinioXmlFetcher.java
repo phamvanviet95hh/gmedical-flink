@@ -30,10 +30,10 @@ public class MinioXmlFetcher extends RichFlatMapFunction<String, FileContentDto>
     private S3Client s3Client() {
         return S3Client.builder()
                 .httpClient(UrlConnectionHttpClient.builder().build())
-                .endpointOverride(URI.create("http://10.36.1.93:9001"))
+                .endpointOverride(URI.create("http://10.6.8.29:9100"))
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create("0duUmnX9HOxK4eNvnlSv", "xnwNITX9BCdUYdNJkpZLszr86rfHwGg2bl8kUWkn")
+                                AwsBasicCredentials.create("LqvdamDwGIGdVh2pdU4t", "S2UG57kEiiyYw4WjeW3wEZTXgNi1OPmEWOssCYrZ")
                         )
                 )
                 .region(Region.US_EAST_1) // Bắt buộc, dù MinIO không sử dụng region
@@ -45,10 +45,10 @@ public class MinioXmlFetcher extends RichFlatMapFunction<String, FileContentDto>
     public void open(Configuration parameters) {
         minioClient = S3Client.builder()
                 .httpClient(UrlConnectionHttpClient.builder().build())
-                .endpointOverride(URI.create("http://10.36.1.93:9001"))
+                .endpointOverride(URI.create("http://10.6.8.29:9100"))
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create("0duUmnX9HOxK4eNvnlSv", "xnwNITX9BCdUYdNJkpZLszr86rfHwGg2bl8kUWkn")
+                                AwsBasicCredentials.create("LqvdamDwGIGdVh2pdU4t", "S2UG57kEiiyYw4WjeW3wEZTXgNi1OPmEWOssCYrZ")
                         )
                 )
                 .region(Region.US_EAST_1) // Bắt buộc, dù MinIO không sử dụng region

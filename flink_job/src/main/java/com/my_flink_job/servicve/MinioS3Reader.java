@@ -26,7 +26,7 @@ public class MinioS3Reader {
                 .endpointOverride(URI.create("http://10.6.8.29:9100"))
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create("qHdHtnT6nwZqFydGe89l", "mYS5VJi5sr2Kx9o7lRnMmnxTQDLsJR6lppfoteef")
+                                AwsBasicCredentials.create("LqvdamDwGIGdVh2pdU4t", "S2UG57kEiiyYw4WjeW3wEZTXgNi1OPmEWOssCYrZ")
                         )
                 )
                 .region(Region.US_EAST_1) // Bắt buộc, dù MinIO không sử dụng region

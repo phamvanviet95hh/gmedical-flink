@@ -392,6 +392,8 @@ public class PatientCheckinExtractor extends RichFlatMapFunction<FileContentGdDt
                                                 .maBsDocKq(chiTietDvkt.getMaBsDocKq())
                                                 .duPhong(chiTietDvkt.getDuPhong())
                                                 .admision_checkin_uuid(admissionCheckin.getId())
+                                                .createdAt(LocalDateTime.now().toString())
+                                                .updatedAt(LocalDateTime.now().toString())
                                                 .build();
                                         admisionSubclinicalsList.add(admisionSubclinical);
 

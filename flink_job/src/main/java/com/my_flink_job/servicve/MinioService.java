@@ -10,7 +10,7 @@ public class MinioService {
     private MinioClient minioClient() {
         return MinioClient.builder()
                 .endpoint("http://10.6.8.29:9100")
-                .credentials("qHdHtnT6nwZqFydGe89l", "mYS5VJi5sr2Kx9o7lRnMmnxTQDLsJR6lppfoteef")
+                .credentials("LqvdamDwGIGdVh2pdU4t", "S2UG57kEiiyYw4WjeW3wEZTXgNi1OPmEWOssCYrZ")
                 .build();
     }
 

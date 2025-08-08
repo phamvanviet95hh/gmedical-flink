@@ -75,12 +75,12 @@ public class App {
                     "'type'='iceberg'," +
                     "'catalog-impl'='org.apache.iceberg.nessie.NessieCatalog'," +
                     "'io-impl'='org.apache.iceberg.aws.s3.S3FileIO'," +
-                    "'uri'='http://10.36.1.19:8181/api/v1'," +
+                    "'uri'='http://10.6.8.29:19120/api/v1'," +
                     "'authentication.type'='none'," +
                     "'ref'='main'," +
                     "'client.assume-role.region'='us-east-1'," +
-                    "'warehouse' = 's3://iceberg'," +
-                    "'s3.endpoint'='http://10.36.1.93:9000'" +
+                    "'warehouse' = 's3://warehouse'," +
+                    "'s3.endpoint'='http://10.6.8.29:9000'" +
                     ")"
     );
     // Hiển thị tất cả catalogs
@@ -118,7 +118,7 @@ public class App {
     logger1.info("Start connect: -----------------------------------------------------------------------> ");
     //Cấu hình kết nối Kafka
     KafkaSource<String> source = KafkaSource.<String>builder()
-            .setBootstrapServers("10.36.1.11:9092")
+            .setBootstrapServers("10.6.8.29:9092")
             .setTopics("test-minio")
             .setGroupId("gmedical-id")
             .setStartingOffsets(OffsetsInitializer.latest())
@@ -354,7 +354,7 @@ public class App {
     Table admisionSubclinicalTable = tableEnv.fromDataStream(
             admisionSubclinicalDataStream,$("uuid"), $("stt"), $("maDichVu"), $("maChiSo"), $("tenChiSo"),
             $("giaTri"), $("donViDo"), $("moTa"), $("ketLuan"), $("ngayKq"), $("maBsDocKq"),
-            $("duPhong"), $("admision_checkin_uuid")
+            $("duPhong"), $("admision_checkin_uuid"), $("createdAt"), $("updatedAt")
     );
     Table admisionClinicalTable = tableEnv.fromDataStream(
             admisionClinicalDataStream,
@@ -368,7 +368,8 @@ public class App {
             $("thoiDiemDbls"),
             $("nguoiThucHien"),
             $("duPhong"),
-            $("admision_checkin_uuid")
+            $("admision_checkin_uuid"),
+            $("createdAt"), $("updatedAt")
     );
     Table admisionDischargeTable = tableEnv.fromDataStream(
             admisionDischargeDataStream,
@@ -377,7 +378,7 @@ public class App {
             $("tuoiThai"), $("chanDoanRv"), $("ppDieutri"), $("ghiChu"), $("maTtdv"),
             $("maBs"), $("tenBs"), $("ngayCt"), $("maCha"), $("maMe"), $("maTheTam"),
             $("hoTenCha"), $("hoTenMe"), $("soNgayNghi"), $("ngoaitruTungay"), $("ngoaitruDenngay"),
-            $("duPhong"), $("admision_checkin_uuid")
+            $("duPhong"), $("admision_checkin_uuid"), $("createdAt"), $("updatedAt")
     );
 
 
